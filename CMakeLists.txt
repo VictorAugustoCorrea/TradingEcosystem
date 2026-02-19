@@ -17,6 +17,7 @@ add_executable(TradingEcosystem src/main.cpp
         src/tcp_server.h
         src/tcp_socket.h
         src/thread_utils.h
-        src/time_utils.h)
+        src/time_utils.h
+        src/types.h)
 
 target_link_libraries(TradingEcosystem PRIVATE Threads::Threads)
