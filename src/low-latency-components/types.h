@@ -21,7 +21,7 @@ namespace Common {
     typedef uint32_t TickerId;
     constexpr auto TickerId_INVALID = std::numeric_limits<TickerId>::max();
 
-    inline auto ticketIdToString(const TickerId ticker_id) -> std::string {
+    inline auto tickerIdToString(const TickerId ticker_id) -> std::string {
         if (UNLIKELY(ticker_id == TickerId_INVALID)) {
             return "INVALID";
         }
