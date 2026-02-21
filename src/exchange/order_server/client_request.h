@@ -32,14 +32,13 @@ namespace Exchange {
     }
 
     struct MEClientRequest {
-        ClientRequestType type_ = ClientRequestType::INVALID;
-
         Qty qty_ = Qty_INVALID;
         Side side_ = Side::INVALID;
         Price price_ = Price_INVALID;
         OrderId order_id_ = OrderId_INVALID;
         ClientId client_id_ = ClientId_INVALID;
         TickerId ticker_id_ = TickerId_INVALID;
+        ClientRequestType type_ = ClientRequestType::INVALID;
 
         auto toString() const {
             std::stringstream ss;
@@ -48,7 +47,7 @@ namespace Exchange {
             << "Type: " << clientRequestTypeToString( type_ )
             << " Client: " << clientIdToString( client_id_ )
             << " ticker: " << tickerIdToString( ticker_id_ )
-            << " oid: " << orderIdToString( order_id_ )
+            << " order id : " << orderIdToString( order_id_ )
             << " side: " << sideToString( side_ )
             << " qty: " << qtyToString( qty_ )
             << " price: " << priceToString( price_ )
