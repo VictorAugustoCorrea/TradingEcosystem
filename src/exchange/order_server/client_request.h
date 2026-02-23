@@ -42,16 +42,16 @@ namespace Exchange {
 
         auto toString() const {
             std::stringstream ss;
-            ss << "MEClientRequest "
-            << " [ "
-            << "Type: " << clientRequestTypeToString( type_ )
-            << " Client: " << clientIdToString( client_id_ )
-            << " ticker: " << tickerIdToString( ticker_id_ )
-            << " order id : " << orderIdToString( order_id_ )
-            << " side: " << sideToString( side_ )
-            << " qty: " << qtyToString( qty_ )
-            << " price: " << priceToString( price_ )
-            << " ] ";
+            ss  << "MEClientRequest "
+                << " [ "
+                << " Type: " << clientRequestTypeToString( type_ )
+                << " Client: " << clientIdToString( client_id_ )
+                << " Ticker: " << tickerIdToString( ticker_id_ )
+                << " Order id : " << orderIdToString( order_id_ )
+                << " Side: " << sideToString( side_ )
+                << " Qty: " << qtyToString( qty_ )
+                << " Price: " << priceToString( price_ )
+                << " ] ";
             return ss.str();
         }
     };

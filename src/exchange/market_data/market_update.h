@@ -47,7 +47,7 @@ namespace Exchange {
         [[nodiscard]]
         auto toString() const {
             std::stringstream ss;
-            ss << "MEMarketUpdate: "
+            ss  << "MEMarketUpdate: "
                 << " [ "
                 << " Type: " << marketUpdateTypeToString( type_ )
                 << " Ticker: " << tickerIdToString( ticker_id_ )
@@ -55,7 +55,7 @@ namespace Exchange {
                 << " Side: " << sideToString ( side_ )
                 << " Qty: " << qtyToString( qty_ )
                 << " Price: " << priceToString( price_ )
-                << " Priority: " << priorityToString( priority_)
+                << " Priority: " << priorityToString( priority_ )
                 << " ] ";
             return ss.str();
         }

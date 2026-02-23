@@ -51,15 +51,15 @@ namespace Exchange {
             std::stringstream ss;
             ss  << "MEClientResponse"
                 << " [ "
-                << "type: " << clientResponseTypeToString( type_ )
-                << " client: " << clientIdToString( client_id_ )
-                << " ticket: " << tickerIdToString( ticker_id_ )
-                << " client order id: " << orderIdToString( client_order_id_ )
-                << " market order id: " << orderIdToString( market_order_id_ )
-                << " side: " << sideToString( side_ )
-                << " executed qty: " << qtyToString( exec_qty_ )
-                << " leaves qty: " << qtyToString( leaves_qty_ )
-                << " price: " << priceToString( price_ )
+                << " Type: " << clientResponseTypeToString( type_ )
+                << " Client: " << clientIdToString( client_id_ )
+                << " Ticker " << tickerIdToString( ticker_id_ )
+                << " Client order id: " << orderIdToString( client_order_id_ )
+                << " Market order id: " << orderIdToString( market_order_id_ )
+                << " Side: " << sideToString( side_ )
+                << " Executed qty: " << qtyToString( exec_qty_ )
+                << " Leaves qty: " << qtyToString( leaves_qty_ )
+                << " Price: " << priceToString( price_ )
                 << " ] ";
             return ss.str();
         }
