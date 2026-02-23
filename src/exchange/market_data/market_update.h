@@ -36,13 +36,13 @@ namespace Exchange {
     }
 
     struct MEMarketUpdate {
-        Qty qty_ = Qty_INVALID;
+        MEMarketUpdateType type_ = MEMarketUpdateType::INVALID;
+        OrderId order_id_ = OrderId_INVALID;
+        TickerId ticker_id_ = TickerId_INVALID;
         Side side_ = Side::INVALID;
         Price price_ = Price_INVALID;
-        OrderId order_id_ = OrderId_INVALID;
+        Qty qty_ = Qty_INVALID;
         Priority priority_ = Priority_INVALID;
-        TickerId ticker_id_ = TickerId_INVALID;
-        MEMarketUpdateType type_ = MEMarketUpdateType::INVALID;
 
         [[nodiscard]]
         auto toString() const {
