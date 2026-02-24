@@ -23,7 +23,6 @@ namespace Exchange {
         MEOrder *next_order_ = nullptr;
 
         /** Only needed for use with MemPoll */
-
         MEOrder() = default;
 
         MEOrder(

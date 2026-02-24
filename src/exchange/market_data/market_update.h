@@ -19,7 +19,7 @@ namespace Exchange {
         TRADE = 4
     };
 
-    inline std::string marketUpdateTypeToString( const MEMarketUpdateType type) {
+    inline std::string marketUpdateTypeToString( const MEMarketUpdateType type ) {
         switch ( type ) {
             case MEMarketUpdateType::ADD:
                 return "ADD";
