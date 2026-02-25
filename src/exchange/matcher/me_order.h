@@ -95,6 +95,8 @@ namespace Exchange {
             return ss.str();
         }
     };
+
+    typedef std::array<MEOrdersAtPrice *, ME_MAX_PRICE_LEVELS> OrdersAtPriceHashMap;
 }
 
 

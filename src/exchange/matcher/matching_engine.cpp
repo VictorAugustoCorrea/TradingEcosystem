@@ -11,7 +11,7 @@ namespace Exchange {
     outgoing_md_updates_( market_updates ),
     logger_("exchange_matching_engine.log")
     {
-        for ( size_t i = 0; i < ticker_order_book.size(); ++i ) {
+        for ( size_t i = 0; i < ticker_order_book_.size(); ++i ) {
             ticker_order_book_[i] = new MEOrderBook(i, &logger_, this);
         }
     }
@@ -34,7 +34,7 @@ namespace Exchange {
 
     auto MatchingEngine::start() -> void {
         run_ = true;
-        ASSERT(Common::createAndStartThread(-1, "Exchange/MatchingEngine", [this](){ run(); }) != nullptr,
+        ASSERT(createAndStartThread(-1, "Exchange/MatchingEngine", [this]{ run(); }) != nullptr,
             "Failed to start MatchingEngine thread.");
     }
 

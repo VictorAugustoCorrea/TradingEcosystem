@@ -40,6 +40,7 @@ namespace Exchange {
         Price price_ = Price_INVALID;
         Qty qty_ = Qty_INVALID;
 
+        [[nodiscard]]
         auto toString() const {
             std::stringstream ss;
             ss  << "MEClientRequest "

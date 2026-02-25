@@ -47,6 +47,7 @@ namespace Exchange {
         OrderId market_order_id_ = OrderId_INVALID;
         ClientResponseType type_ = ClientResponseType::INVALID;
 
+        [[nodiscard]]
         auto toString() const {
             std::stringstream ss;
             ss  << "MEClientResponse"

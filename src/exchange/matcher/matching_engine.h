@@ -3,11 +3,10 @@
 #ifndef TRADINGECOSYSTEM_MATCHING_ENGINE_H
 #define TRADINGECOSYSTEM_MATCHING_ENGINE_H
 
-//#include "me_order_book.h"
+#include "me_order_book.h"
 #include "low-latency-components/macros.h"
 #include "low-latency-components/logging.h"
 #include "exchange/market_data/market_update.h"
-//#include "low-latency-components/thread_utils.h"
 #include "exchange/order_server/client_request.h"
 #include "exchange/order_server/client_response.h"
 #include "low-latency-components/lock_free_queue.h"
@@ -25,12 +24,13 @@ namespace Exchange {
         auto start() -> void;
         auto stop()  -> void;
 
-        static auto processClientRequest(const MEClientRequest *client_request) noexcept{
+         auto processClientRequest(const MEClientRequest *client_request) noexcept{
             auto order_book = ticker_order_book_[client_request -> ticker_id_];
             switch (client_request -> type_) {
                 case ClientRequestType::NEW: {
                     order_book -> add(
                         client_request -> client_id_,
+                        client_request->order_id_,
                         client_request -> ticker_id_,
                         client_request -> side_,
                         client_request -> price_,
@@ -76,7 +76,7 @@ namespace Exchange {
                 getCurrentTimeStr( &time_str_ ));
 
             while ( run_ ) {
-                if (const auto me_client_request = incoming_requests_ -> getNextToRead();) {
+                if (const auto me_client_request = incoming_requests_ -> getNextToRead()) {
                     logger_.log("%:% %() % Processing %. \n",
                         __FILE__, __LINE__, __func__,
                         getCurrentTimeStr( &time_str_ ),
@@ -95,7 +95,7 @@ namespace Exchange {
         MatchingEngine &operator = (const MatchingEngine &&) = delete;
 
     private:
-        OrderBookHasMap ticker_order_book;
+        OrderBookHashMap ticker_order_book_ = {};
         ClientRequestLFQueue *incoming_requests_ = nullptr;
         MEClientResponseLFQueue *outgoing_ogw_responses_ = nullptr;
         MEMarketUpdateLFQueue *outgoing_md_updates_ = nullptr;
