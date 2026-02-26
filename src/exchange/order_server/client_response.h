@@ -36,16 +36,16 @@ namespace Exchange {
         return "UNKNOWN";
     }
 
-    struct MEClientResponse {                                    /**   size alignment    */
-        ClientResponseType type_ = ClientResponseType::INVALID;  /**  uint8_t  (1) byte  */
-        Side side_ = Side::INVALID;                              /**  uint8_t  (1) byte  */
-        TickerId ticker_id_ = TickerId_INVALID;                  /**  uint32_t (4) bytes */
-        ClientId client_id_ = ClientId_INVALID;                  /**  uint64_t (8) bytes */
-        OrderId client_order_id_ = OrderId_INVALID;              /**  uint64_t (8) bytes */
-        OrderId market_order_id_ = OrderId_INVALID;              /**  uint64_t (8) bytes */
-        Price price_ = Price_INVALID;                            /**  uint64_t (8) bytes */
-        Qty exec_qty_ = Qty_INVALID;                             /**  uint64_t (8) bytes */
-        Qty leaves_qty_ = Qty_INVALID;                           /**  uint64_t (8) bytes */
+    struct MEClientResponse {
+        ClientResponseType type_ = ClientResponseType::INVALID;
+        ClientId client_id_ = ClientId_INVALID;
+        TickerId ticker_id_ = TickerId_INVALID;
+        OrderId client_order_id_ = OrderId_INVALID;
+        OrderId market_order_id_ = OrderId_INVALID;
+        Side side_ = Side::INVALID;
+        Price price_ = Price_INVALID;
+        Qty exec_qty_ = Qty_INVALID;
+        Qty leaves_qty_ = Qty_INVALID;
 
         [[nodiscard]]
         auto toString() const {

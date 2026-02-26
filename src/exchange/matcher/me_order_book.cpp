@@ -30,11 +30,11 @@ namespace Exchange {
         const auto new_market_order_id = generateNewMarketOrderId();
         client_response_ = {
             ClientResponseType::ACCEPTED,
-            side,
             client_id,
             ticker_id,
             client_order_id,
             new_market_order_id,
+            side,
             price,
             0,
             qty
