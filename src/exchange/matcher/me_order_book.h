@@ -20,6 +20,9 @@ namespace Exchange {
         ~MEOrderBook();
 
         auto add(ClientId client_id, OrderId client_order_id, TickerId ticker_id, Side side, Price price, Qty qty) noexcept -> void;
+        auto cancel(ClientId client_id, OrderId order_id, TickerId ticker_id) noexcept -> void;
+        auto toString(bool detailed, bool validity_check) const -> std::string;
+
         MEOrderBook() = delete;
         MEOrderBook(const MEOrderBook & ) = delete;
         MEOrderBook(const MEOrderBook &&) = delete;
@@ -107,6 +110,27 @@ namespace Exchange {
             }
         }
 
+        auto removeOrdersAtPrice(const Side side, const Price price) noexcept {
+            const auto best_orders_by_price = side == Side::BUY ? bids_at_price_ : asks_at_price_;
+            const auto orders_at_price = getOrdersAtPrice(price);
+
+            if (UNLIKELY(orders_at_price -> next_entry_ == orders_at_price)) {
+                side == Side::BUY ? bids_at_price_ : asks_at_price_ = nullptr;
+            }
+            else {
+                orders_at_price -> prev_entry_ -> next_entry_ = orders_at_price -> next_entry_;
+                orders_at_price -> next_entry_ -> prev_entry_ = orders_at_price -> prev_entry_;
+
+                if (orders_at_price == best_orders_by_price) {
+                    side == Side::BUY ? bids_at_price_ : asks_at_price_ = orders_at_price -> next_entry_;
+                }
+                orders_at_price -> prev_entry_ = orders_at_price -> next_entry_ = nullptr;
+            }
+
+            price_orders_at_price_hash_map_.at(priceToIndex(price)) = nullptr;
+            orders_at_price_pool_.deallocate(orders_at_price);
+        }
+
 
         [[nodiscard]]
         auto getNextPriority(const Price price) const noexcept {
@@ -138,6 +162,28 @@ namespace Exchange {
                 first_order -> prev_order_ = order;
             }
             cid_oid_to_order_.at(order -> client_id_).at(order -> client_order_id_) = order;
+        }
+
+        auto removeOrder(MEOrder *order) noexcept {
+            const auto orders_at_price = getOrdersAtPrice(order -> price_);
+
+            if (order -> prev_order_ == order) {
+                removeOrdersAtPrice(order -> side_, order -> price_);
+            }
+            else {
+                const auto order_before = order -> prev_order_;
+                const auto order_after  = order -> next_order_;
+                order_before -> next_order_ = order_after;
+                order_after -> prev_order_ = order_before;
+
+                if (orders_at_price -> first_me_order_ == order) {
+                    orders_at_price -> first_me_order_ = order_after;
+                }
+
+                order -> prev_order_ = order -> next_order_ = nullptr;
+            }
+            cid_oid_to_order_.at(order -> client_id_).at(order -> client_order_id_) = nullptr;
+            order_pool_.deallocate(order);
         }
     };
     typedef std::array<MEOrderBook *, ME_MAX_TICKERS> OrderBookHashMap;

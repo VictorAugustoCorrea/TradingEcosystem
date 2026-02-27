@@ -24,8 +24,8 @@ namespace Exchange {
         auto start() -> void;
         auto stop()  -> void;
 
-         auto processClientRequest(const MEClientRequest *client_request) noexcept{
-            auto order_book = ticker_order_book_[client_request -> ticker_id_];
+         auto processClientRequest(const MEClientRequest *client_request) const noexcept{
+            const auto order_book = ticker_order_book_[client_request -> ticker_id_];
             switch (client_request -> type_) {
                 case ClientRequestType::NEW: {
                     order_book -> add(

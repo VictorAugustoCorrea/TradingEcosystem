@@ -68,4 +68,51 @@ namespace Exchange {
             matching_engine_ -> sendMarketUpdate(&market_update_);
         }
     }
+    auto MEOrderBook::cancel(const ClientId client_id, const OrderId order_id, const TickerId ticker_id) noexcept -> void {
+        const auto is_cancelable = client_id < cid_oid_to_order_.size();
+        MEOrder *exchange_order = nullptr;
+
+        if (is_cancelable) {
+            const auto &co_itr = cid_oid_to_order_.at(client_id);
+            exchange_order = co_itr.at(order_id);
+        }
+        if (UNLIKELY(exchange_order == nullptr)) {
+            client_response_ = {
+                ClientResponseType::CANCEL_REJECTED,
+                client_id,
+                ticker_id,
+                order_id,
+                OrderId_INVALID,
+                Side::INVALID,
+                Price_INVALID,
+                Qty_INVALID,
+                Qty_INVALID
+            };
+        }
+        else {
+            client_response_ = {
+                ClientResponseType::CANCELED,
+                client_id,
+                ticker_id,
+                order_id,
+                exchange_order -> market_order_id_,
+                exchange_order -> side_,
+                exchange_order -> price_,
+                Qty_INVALID,
+                exchange_order -> qty_
+            };
+            market_update_ = {
+                MEMarketUpdateType::CANCEL,
+                exchange_order -> market_order_id_,
+                ticker_id,
+                exchange_order -> side_,
+                exchange_order -> price_,
+                0,
+                exchange_order -> priority_
+            };
+            removeOrder(exchange_order);
+            matching_engine_ -> sendMarketUpdate(&market_update_);
+        }
+        matching_engine_ -> sendClientResponse(&client_response_);
+    }
 }
