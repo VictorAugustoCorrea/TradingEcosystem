@@ -141,6 +141,9 @@ namespace Exchange {
             return orders_at_price -> first_me_order_ -> prev_order_ -> priority_ + 1;
         }
 
+        auto match(TickerId ticker_id, ClientId client_id, Side side, OrderId client_order_id, OrderId new_market_order_id, MEOrder* itr, Qty* leaves_qty) noexcept;
+        auto checkForMatch(ClientId client_id, OrderId client_order_id, TickerId ticker_id, Side side, Price price, Qty qty, Qty new_market_order_id) noexcept;
+
         auto addOrder(MEOrder *order) noexcept {
             if (const auto orders_at_price = getOrdersAtPrice(order -> price_); !orders_at_price) {
                 order -> next_order_ = order -> prev_order_ = order;
