@@ -13,22 +13,31 @@ namespace Exchange {
     #pragma pack(push, 1)
     enum class MEMarketUpdateType : uint8_t {
         INVALID = 0,
-        ADD = 1,
-        MODIFY = 2,
-        CANCEL = 3,
-        TRADE = 4
+        CLEAR = 1,
+        ADD = 2,
+        MODIFY = 3,
+        CANCEL = 4,
+        TRADE = 5,
+        SNAPSHOT_START = 6,
+        SNAPSHOT_END = 7
     };
 
     inline std::string marketUpdateTypeToString( const MEMarketUpdateType type ) {
         switch ( type ) {
             case MEMarketUpdateType::ADD:
                 return "ADD";
+            case MEMarketUpdateType::CLEAR:
+                return "CLEAR";
             case MEMarketUpdateType::MODIFY:
                 return "MODIFY";
             case MEMarketUpdateType::CANCEL:
                 return "CANCEL";
             case MEMarketUpdateType::TRADE:
                 return "TRADE";
+            case MEMarketUpdateType::SNAPSHOT_START:
+                return "SNAPSHOT_START";
+            case MEMarketUpdateType::SNAPSHOT_END:
+                return "SNAPSHOT_END";
             case MEMarketUpdateType::INVALID:
                 return "INVALID";
         }
@@ -60,9 +69,26 @@ namespace Exchange {
             return ss.str();
         }
     };
+
+    struct MDPMarketUpdate {
+        size_t seq_num_ = 0;
+        MEMarketUpdate me_market_update_;
+
+        [[nodiscard]]
+        auto toString() const {
+            std::stringstream ss;
+            ss  << "MDPMarketUpdate: "
+                << " [ "
+                << " seq: " << seq_num_
+                << " " << me_market_update_.toString()
+                << " ] ";
+            return ss.str();
+        }
+    };
     #pragma pack(pop)
 
     typedef LFQueue<MEMarketUpdate> MEMarketUpdateLFQueue;
+    typedef LFQueue<MDPMarketUpdate> MDPMarketUpdateLFQueue;
 }
 
 #endif //TRADINGECOSYSTEM_MARKET_UPDATE_H
