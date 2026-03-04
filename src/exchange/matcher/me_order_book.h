@@ -21,6 +21,8 @@ namespace Exchange {
 
         auto add(ClientId client_id, OrderId client_order_id, TickerId ticker_id, Side side, Price price, Qty qty) noexcept -> void;
         auto cancel(ClientId client_id, OrderId order_id, TickerId ticker_id) noexcept -> void;
+
+        [[nodiscard]]
         auto toString(bool detailed, bool validity_check) const -> std::string;
 
         MEOrderBook() = delete;
