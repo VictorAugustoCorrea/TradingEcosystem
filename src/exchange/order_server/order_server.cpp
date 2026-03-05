@@ -7,29 +7,33 @@ namespace Exchange {
         MEClientResponseLFQueue *client_responses,
         const std::string &iface,
         const int port) :
-    logger_("exchange_order_server.log"),
-    port_(port),
-    tcp_server_(logger_),
-    iface_(iface),
-    fifo_sequencer_(client_requests, &logger_),
-    outgoing_responses_(client_responses) {
-        cid_next_outgoing_seq_num_.fill(1);
-        cid_next_exp_seq_num_.fill(1);
-        cid_tcp_socket_.fill(nullptr);
+        logger_("exchange_order_server.log"),
+        port_(port),
+        tcp_server_(logger_),
+        iface_(iface),
+        fifo_sequencer_(client_requests, &logger_),
+        outgoing_responses_(client_responses)
+        {
+            cid_next_outgoing_seq_num_.fill(1);
+            cid_next_exp_seq_num_.fill(1);
+            cid_tcp_socket_.fill(nullptr);
 
-        tcp_server_.recv_callback_ = [this](const TCPSocket* socket, const Nanos rx_time) {
-            tcp_server_.defaultRecvCallback(socket, rx_time);
-        };
-        tcp_server_.recv_finished_callback_ = [this] {
-            tcp_server_.defaultRecvFinishedCallback();
-        };
-    }
+            tcp_server_.recv_callback_ = [this](auto socket, auto rx_time) {
+                recvCallback(socket, rx_time);
+            };
+
+            tcp_server_.recv_finished_callback_ = [this] {
+                recvFinishedCallBack();
+            };
+        }
 
     auto OrderServer::start() -> void {
         run_ = true;
         tcp_server_.listen(iface_, port_);
 
-        ASSERT(Common::createAndStartThread(-1, "Exchange/OrderServer", [this] { run(); })
+        ASSERT(createAndStartThread(-1, "Exchange/OrderServer", [this] {
+            run();
+        })
             != nullptr, "Failed to start OrderServer thread.");
     }
 
