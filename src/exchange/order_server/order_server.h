@@ -4,9 +4,7 @@
 #define TRADINGECOSYSTEM_ORDER_SERVER_H
 
 #include <functional>
-#include "low-latency-components/macros.h"
 #include "low-latency-components/tcp_server.h"
-#include "low-latency-components/thread_utils.h"
 #include "exchange/order_server/fifo_sequencer.h"
 #include "exchange/order_server/client_request.h"
 #include "exchange/order_server/client_response.h"
