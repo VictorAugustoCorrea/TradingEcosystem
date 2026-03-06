@@ -4,9 +4,9 @@
 #define TRADINGECOSYSTEM_FIFO_SEQUENCER_H
 
 #include "low-latency-components/macros.h"
+#include "low-latency-components/logging.h"
 #include "low-latency-components/thread_utils.h"
 #include "exchange/order_server/client_request.h"
-#include "low-latency-components/logging.h"
 
 namespace Exchange {
     constexpr size_t ME_MAX_PENDING_REQUESTS = 1024;
@@ -49,6 +49,7 @@ namespace Exchange {
             }
             pending_size_ = 0;
         }
+
     private:
         ClientRequestLFQueue *incoming_requests_ = nullptr;
         std::string time_str_;

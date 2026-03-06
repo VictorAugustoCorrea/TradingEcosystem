@@ -1,6 +1,5 @@
 #include "order_server.h"
 
-
 namespace Exchange {
     OrderServer::OrderServer(
         ClientRequestLFQueue *client_requests,
@@ -31,9 +30,7 @@ namespace Exchange {
         run_ = true;
         tcp_server_.listen(iface_, port_);
 
-        ASSERT(createAndStartThread(-1, "Exchange/OrderServer", [this] {
-            run();
-        })
+        ASSERT(createAndStartThread(-1, "Exchange/OrderServer", [this] { run(); } )
             != nullptr, "Failed to start OrderServer thread.");
     }
 

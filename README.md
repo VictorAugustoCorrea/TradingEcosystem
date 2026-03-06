@@ -1,95 +1,204 @@
-<!DOCTYPE html>
-<html lang="en">
-<tittle>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-</tittle>
-<body>
+<h1 text-align="center">Trading Ecosystem</h1>
 
-<h1>Low Latency Application with C++</h1>
+<p text-align="center">
+High-performance trading system prototype implemented in <b>C++</b> focused on
+<b>low-latency system design</b>, <b>deterministic processing</b>, and
+<b>high-throughput message handling</b>.
+</p>
 
-<p>This repository is dedicated to building a <strong>low-latency application</strong> in modern C++, heavily inspired by the book<br>
-<strong>"Building Low Latency Applications with C++"</strong> by Sourav Ghosh.</p>
+<p text-align="center">
+Inspired by the architectural concepts presented in <i>Building Low Latency Applications with C++</i>.
+</p>
 
-<p>The goal is to implement high-performance, ultra-low-latency components and techniques for time-critical systems (e.g., high-frequency trading, real-time processing, gaming engines, or any nanosecond-sensitive domain).</p>
-
-<h2>Key Focus Areas</h2>
-<ul>
-  <li>Lock-free and wait-free data structures</li>
-  <li>Efficient memory management and cache optimization</li>
-  <li>Low-latency networking (kernel bypass, polling, etc.)</li>
-  <li>Precise latency measurement and profiling</li>
-  <li>Modern C++ best practices (C++20/23 features like concepts, coroutines, ranges)</li>
-</ul>
-
-<h2>Current Project Structure</h2>
-
-<pre><code>low-latency/
-├── src/                # Core source code (implementation of low-latency components)
-├── CMakeLists.txt      # Build configuration using CMake
-└── README.md           # This file (or README.html if using HTML version)
-</code></pre>
-
-<p>The <code>src/</code> folder contains the main C++ implementation files. More details and subfolders will be added as development progresses (e.g., benchmarks, tests, examples).</p>
-
-<h2>Technologies & Tools</h2>
-<ul>
-  <li><strong>Language</strong>: C++20 / C++23</li>
-  <li><strong>Build System</strong>: CMake</li>
-  <li><strong>Compiler Recommendations</strong>: GCC 12+ or Clang 15+</li>
-  <li>Planned additions:
-    <ul>
-      <li>Google Benchmark for micro-benchmarks</li>
-      <li>Unit tests (Google Test or Catch2)</li>
-      <li>Profiling: perf, flamegraph, Intel VTune</li>
-    </ul>
-  </li>
-</ul>
-
-<h2>How to Build (Basic Setup)</h2>
-
-<ol>
-  <li>Clone the repository:
-    <pre><code>git clone https://github.com/VictorAugustoCorrea/low-latency.git
-cd low-latency</code></pre>
-  </li>
-  <li>Create a build directory:
-    <pre><code>mkdir build &amp;&amp; cd build</code></pre>
-  </li>
-  <li>Configure with CMake:
-    <pre><code>cmake .. -DCMAKE_BUILD_TYPE=Release</code></pre>
-  </li>
-  <li>Build:
-    <pre><code>cmake --build . --config Release -j$(nproc)</code></pre>
-  </li>
-  <li>(Future) Run executables or benchmarks from the <code>build/</code> folder.</li>
-</ol>
-
-<p><strong>Note</strong>: This is an early-stage project — build instructions will evolve as more components are added.</p>
-
-<h2>Inspiration & Reference</h2>
-<ul>
-  <li><strong>Main Book</strong>: <em>Building Low Latency Applications with C++</em> – Sourav Ghosh<br>
-    <a href="https://www.packtpub.com/product/building-low-latency-applications-with-c/9781837639359" target="_blank">Packt Publishing Link</a><br>
-    (Covers building a complete low-latency trading system from scratch)
-  </li>
-</ul>
-
-<h2>Status</h2>
-<p><span class="emoji">🚧</span> <strong>Work in Progress</strong> – Early development phase<br>
-Initial focus: Setting up CMake, basic low-latency primitives in <code>src/</code>, and experimenting with core concepts from the book.</p>
-
-<h2>Contributing</h2>
-<p>Feel free to open issues for suggestions, optimizations, or questions. Pull requests are welcome!</p>
-
-<h2>License</h2>
-<p>MIT License (see <a href=>LICENSE</a> file — add one if needed)</p>
+<p text-align="center">
+<a href="https://github.com/VictorAugustoCorrea/TradingEcosystem">Repository</a>
+</p>
 
 <hr>
 
-<p style="text-align: center; font-style: italic;">
-  Focused on <strong>performance</strong>, <strong>learning</strong>, and applying real-world low-latency techniques.
+<h2>Overview</h2>
+
+<p>
+<b>Trading Ecosystem</b> is an experimental implementation of a simplified electronic
+exchange infrastructure designed to explore the engineering principles behind
+modern high-performance trading systems.
 </p>
 
-</body>
-</html>
+<p>
+The project focuses on building the core components required to process orders,
+maintain an order book, and handle market data while minimizing latency and
+contention.
+</p>
+
+<p>
+The system is structured around modular components that simulate the critical
+parts of a trading venue.
+</p>
+
+<hr>
+
+<h2>System Architecture</h2>
+
+<pre>
+Trading Ecosystem
+│
+├── Order Server
+│     Handles client connections and order ingestion
+│
+├── Matching Engine
+│     Maintains the limit order book and executes trades
+│
+├── Market Data
+│     Generates market updates from order book events
+│
+└── Low Latency Infrastructure
+      Lock-free queues
+      Memory pools
+      TCP networking
+      Logging and timing utilities
+</pre>
+
+<hr>
+
+<h2>Project Structure</h2>
+
+<pre>
+src/
+ ├── exchange/
+ │   ├── market_data/
+ │   │
+ │   ├── matcher/
+ │   │   ├── matching_engine
+ │   │   ├── me_order
+ │   │   └── me_order_book
+ │   │
+ │   └── order_server/
+ │       ├── client_request
+ │       ├── client_response
+ │       ├── fifo_sequencer
+ │       └── order_server
+ │
+ ├── low_latency_components/
+ │   ├── lock_free_queue
+ │   ├── mem_pool
+ │   ├── tcp_server
+ │   ├── tcp_socket
+ │   ├── logging
+ │   ├── thread_utils
+ │   ├── socket_utils
+ │   ├── time_utils
+ │   └── types
+ │
+ └── main.cpp
+</pre>
+
+<hr>
+
+<h2>Core Components</h2>
+
+<h3>Order Server</h3>
+
+<p>
+Responsible for handling TCP client connections and receiving order messages.
+Requests are validated, sequenced, and forwarded to the matching engine.
+</p>
+
+<p>
+Key responsibilities:
+</p>
+
+<ul>
+<li>Client connection management</li>
+<li>Order message ingestion</li>
+<li>FIFO sequencing of requests</li>
+<li>Dispatching orders to the matching engine</li>
+</ul>
+
+<h3>Matching Engine</h3>
+
+<p>
+Implements the core logic of the exchange through a limit order book
+responsible for matching buy and sell orders.
+</p>
+
+<ul>
+<li>Price-time priority matching</li>
+<li>Efficient order book management</li>
+<li>Deterministic order processing</li>
+</ul>
+
+<h3>Market Data</h3>
+
+<p>
+Produces market updates derived from order book events such as
+order insertions, cancellations, and trades.
+</p>
+
+<h3>Low Latency Infrastructure</h3>
+
+<p>
+A set of reusable utilities designed for performance-critical systems.
+</p>
+
+<ul>
+<li><b>Lock-Free Queue</b> — high-throughput inter-thread communication</li>
+<li><b>Memory Pool</b> — pre-allocated memory to avoid dynamic allocation overhead</li>
+<li><b>TCP Networking</b> — lightweight abstraction for client/server communication</li>
+<li><b>Logging</b> — low-overhead event logging</li>
+<li><b>Time Utilities</b> — precise timestamping for performance monitoring</li>
+</ul>
+
+<hr>
+
+<h2>Build</h2>
+
+<p><b>Requirements</b></p>
+
+<ul>
+<li>Linux</li>
+<li>C++17 or newer</li>
+<li>CMake</li>
+<li>GCC / Clang</li>
+</ul>
+
+<pre>
+git clone https://github.com/VictorAugustoCorrea/TradingEcosystem.git
+cd TradingEcosystem
+
+mkdir build
+cd build
+
+cmake ..
+make
+</pre>
+
+<hr>
+
+<h2>Design Principles</h2>
+
+<ul>
+<li>Minimize dynamic memory allocation</li>
+<li>Prefer lock-free communication where possible</li>
+<li>Reduce system call overhead</li>
+<li>Maintain deterministic execution paths</li>
+<li>Favor cache-friendly data structures</li>
+</ul>
+
+<hr>
+
+<h2>Purpose</h2>
+
+<p>
+This project is intended as a learning platform to explore the internal
+architecture of modern trading systems and the design of low-latency
+applications in C++.
+</p>
+
+<hr>
+
+<h2>Disclaimer</h2>
+
+<p>
+This repository is intended for <b>educational and research purposes</b>.
+It does not represent a production-ready trading system.
+</p>

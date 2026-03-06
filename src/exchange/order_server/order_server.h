@@ -17,6 +17,34 @@ namespace Exchange {
         auto start() -> void;
         auto stop()  -> void;
 
+        auto run() noexcept {
+            logger_.log("%:% %() % %.\n",
+                __FILE__, __LINE__, __func__,
+                getCurrentTimeStr(&time_str_));
+
+            while (run_) {
+                tcp_server_.poll();
+                tcp_server_.sendAndRecv();
+
+                for (auto client_response = outgoing_responses_ -> getNextToRead(); outgoing_responses_ -> size() && client_response; client_response = outgoing_responses_ -> getNextToRead()) {
+                    auto &next_outgoing_seq_num_ = cid_next_outgoing_seq_num_[client_response -> client_id_];
+                    logger_.log("%:% %() % Processing cid: %, seq: % %. \n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        client_response -> client_id_,
+                        next_outgoing_seq_num_,
+                        client_response -> toString());
+
+                    ASSERT(cid_tcp_socket_[client_response -> client_id_] != nullptr, "Don't have a TCPSocket for Client_id: "
+                        + std::to_string(client_response -> client_id_));
+                    cid_tcp_socket_[client_response -> client_id_] -> send(&next_outgoing_seq_num_, sizeof(next_outgoing_seq_num_));
+                    cid_tcp_socket_[client_response -> client_id_] -> send(client_response, sizeof(MEClientResponse));
+                    outgoing_responses_ -> updateReadIndex();
+                    ++next_outgoing_seq_num_;
+                }
+            }
+        }
+
         auto recvCallback(TCPSocket *socket, const Nanos rx_time) noexcept {
             logger_.log("%:% %() % Received socket: %, len: %, rx: %. \n",
                 __FILE__, __LINE__, __func__,
