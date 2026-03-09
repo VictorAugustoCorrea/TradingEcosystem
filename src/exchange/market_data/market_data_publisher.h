@@ -3,8 +3,6 @@
 #ifndef TRADINGECOSYSTEM_MARKET_DATA_PUBLISHER_H
 #define TRADINGECOSYSTEM_MARKET_DATA_PUBLISHER_H
 
-#include <functional>
-
 #include "market_update.h"
 #include "low-latency-components/logging.h"
 #include "low-latency-components/mcast_socket.h"
@@ -12,6 +10,44 @@
 
 namespace Exchange {
     class MarketDataPublisher {
+    public:
+        MarketDataPublisher(
+        MEMarketUpdateLFQueue * market_updates,
+        const std::string &iface,
+        const std::string &snapshot_ip,
+        int snapshot_port,
+        const std::string &incremental_ip,
+        int incremental_port);
+
+        auto run() noexcept -> void;
+
+        auto start() -> void {
+            run_ = true;
+            ASSERT(createAndStartThread(-1, "Exchange/MarketDataPublisher", [this] { run(); }) != nullptr,
+                "Failed to start MarketData thread.");
+            snapshot_synthesizer_ -> start();
+        }
+
+        auto stop() -> void {
+            run_ = false;
+            snapshot_synthesizer_ -> stop();
+        }
+
+        ~MarketDataPublisher() {
+            stop();
+
+            using namespace std::literals::chrono_literals;
+            std::this_thread::sleep_for(5s);
+            delete snapshot_synthesizer_;
+            snapshot_synthesizer_ = nullptr;
+        }
+
+        MarketDataPublisher() = delete;
+        MarketDataPublisher(const MarketDataPublisher & ) = delete;
+        MarketDataPublisher(const MarketDataPublisher &&) = delete;
+        MarketDataPublisher &operator=(const MarketDataPublisher & ) = delete;
+        MarketDataPublisher &operator=(const MarketDataPublisher &&) = delete;
+
     private:
         size_t next_inc_seq_num_ = 1;
         MEMarketUpdateLFQueue *outgoing_md_updates_ = nullptr;

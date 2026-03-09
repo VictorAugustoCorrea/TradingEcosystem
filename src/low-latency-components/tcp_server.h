@@ -116,7 +116,7 @@ namespace Common
                     logger_.log("%:% %() % EPOLL-ERR socket: % \n",
                         __FILE__, __LINE__, __func__,
                         getCurrentTimeStr(&time_str_),
-                        socket->socket_fd_);
+                        socket -> socket_fd_);
 
                     if (std::find(receive_sockets_.begin(),
                                   receive_sockets_.end(),
