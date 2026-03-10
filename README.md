@@ -66,6 +66,9 @@ Trading Ecosystem
 src/
  ├── exchange/
  │   ├── market_data/
+ │   │   ├── market_data_update
+ │   │   ├── market_data_publisher
+ │   │   ├── snapshot_synthesizer
  │   │
  │   ├── matcher/
  │   │   ├── matching_engine

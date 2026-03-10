@@ -3,20 +3,20 @@
 #ifndef TRADINGECOSYSTEM_SOCKET_UTILS_H
 #define TRADINGECOSYSTEM_SOCKET_UTILS_H
 
+
 #include <string>
 #include <cstring>
 #include <netdb.h>
 #include <fcntl.h>
 #include <sstream>
+#include "macros.h"
+#include "logging.h"
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <unordered_set>
-
-#include "macros.h"
-#include "logging.h"
 
 namespace Common
 {
@@ -55,7 +55,7 @@ namespace Common
             for (const ifaddrs *ifa = ifaddr; ifa; ifa = ifa -> ifa_next)
             {
                  if (ifa -> ifa_addr && ifa -> ifa_addr -> sa_family == AF_INET && iface == ifa -> ifa_name) {
-                     getnameinfo(ifa->ifa_addr,
+                     getnameinfo(ifa -> ifa_addr,
                          sizeof(sockaddr_in),
                          buf, sizeof(buf),
                          nullptr,
@@ -153,7 +153,7 @@ namespace Common
             }
 
             if (!socket_cfg.is_listening_) {
-                ASSERT(connect(socket_fd, rp->ai_addr, rp->ai_addrlen) != 1, "connect() failed. errno:" + std::string(strerror(errno)));
+                ASSERT(connect(socket_fd, rp -> ai_addr, rp -> ai_addrlen) != 1, "connect() failed. errno:" + std::string(strerror(errno)));
             }
 
             if (socket_cfg.is_listening_) {

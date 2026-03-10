@@ -12,7 +12,7 @@ namespace Exchange {
     class MarketDataPublisher {
     public:
         MarketDataPublisher(
-        MEMarketUpdateLFQueue * market_updates,
+        MEMarketUpdateLFQueue *market_updates,
         const std::string &iface,
         const std::string &snapshot_ip,
         int snapshot_port,

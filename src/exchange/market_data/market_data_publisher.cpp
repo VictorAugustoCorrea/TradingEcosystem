@@ -5,7 +5,7 @@ namespace Exchange {
         MEMarketUpdateLFQueue * market_updates,
         const std::string &iface,
         const std::string &snapshot_ip,
-        int snapshot_port,
+        const int snapshot_port,
         const std::string &incremental_ip,
         const int incremental_port) :
     outgoing_md_updates_(market_updates),
