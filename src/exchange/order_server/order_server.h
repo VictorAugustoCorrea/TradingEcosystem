@@ -12,7 +12,7 @@
 namespace Exchange {
     class OrderServer {
     public:
-        OrderServer(ClientRequestLFQueue *client_requests, MEClientResponseLFQueue *client_responses, const std::string &iface, int port);
+        OrderServer(ClientRequestLFQueue *client_requests, MEClientResponseLFQueue *client_responses, std::string &iface, int port);
         ~OrderServer();
         auto start() -> void;
         auto stop()  -> void;

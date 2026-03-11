@@ -13,15 +13,6 @@ namespace Exchange {
         ASSERT(snapshot_socket_.init(snapshot_ip, iface, snapshot_port, false) >= 0,
             "Unable to create snapshot mcast socket. error: " + std::string(strerror(errno)));
     }
-    auto SnapshotSynthesizer::start() -> void {
-        run_ = true;
-        ASSERT(createAndStartThread(-1, "Exchange/SnapshotSynthesizer", [this]{ run(); } ) =!nullptr,
-            "Failed to start SnapshotSynthesizer thread.");
-    }
-
-    auto SnapshotSynthesizer::stop() -> void {
-        run_ = false;
-    }
 
     auto SnapshotSynthesizer::addToSnapshot(const MDPMarketUpdate *market_update) {
         const auto &me_market_update = market_update -> me_market_update_;
@@ -62,5 +53,90 @@ namespace Exchange {
         last_inc_seq_num_ = market_update -> seq_num_;
     }
 
+    auto SnapshotSynthesizer::publishSnapshot() {
+        {
+            size_t snapshot_size = 0;
+            const MDPMarketUpdate start_market_update{snapshot_size++,
+                { MEMarketUpdateType::SNAPSHOT_START, last_inc_seq_num_}
+            };
+            logger_.log("%:% %() % %. \n",
+                __FILE__, __LINE__, __func__,
+                getCurrentTimeStr(&time_str_),
+                start_market_update.toString());
+
+            snapshot_socket_.send(&start_market_update, sizeof(MDPMarketUpdate));
+
+            for (size_t ticker_id = 0; ticker_id < ticker_orders_.size(); ++ticker_id) {
+                const auto &orders = ticker_orders_.at(ticker_id);
+                MEMarketUpdate me_market_update;
+                me_market_update.type_ = MEMarketUpdateType::CLEAR;
+                me_market_update.ticker_id_ = ticker_id;
+                const MDPMarketUpdate clear_market_update{ snapshot_size++, me_market_update };
+                logger_.log("%:% %() % %. \n",
+                    __FILE__, __LINE__, __func__,
+                    getCurrentTimeStr(&time_str_),
+                    clear_market_update.toString());
+                snapshot_socket_.send(&clear_market_update, sizeof(MDPMarketUpdate));
+
+                for (const auto order : orders) {
+                    if (order) {
+                        const MDPMarketUpdate market_update{ snapshot_size++, *order };
+                        logger_.log("%:% %() % %. \n",
+                            __FILE__, __LINE__, __func__,
+                            getCurrentTimeStr(&time_str_),
+                            market_update.toString());
+                        snapshot_socket_.send(&market_update, sizeof(MDPMarketUpdate));
+                        snapshot_socket_.sendAndRecv();
+                    }
+                }
+            }
+
+            const MDPMarketUpdate end_market_update{ snapshot_size++, {
+             MEMarketUpdateType::SNAPSHOT_END, last_inc_seq_num_}
+            };
+            logger_.log("%:% %() % %. \n",
+                __FILE__, __LINE__, __func__,
+                getCurrentTimeStr(&time_str_),
+                end_market_update.toString());
+            snapshot_socket_.send(&end_market_update, sizeof(MDPMarketUpdate));
+            snapshot_socket_.sendAndRecv();
+
+            logger_.log("%:% %() % Published snapshot of % orders. \n",
+                __FILE__, __LINE__, __func__,
+                getCurrentTimeStr(&time_str_),
+                snapshot_size -1);
+        }
+    }
+
+    auto SnapshotSynthesizer::run() {
+        logger_.log("%:% %() %. \n",
+            __FILE__, __LINE__, __func__,
+            getCurrentTimeStr(&time_str_));
+        while (run_) {
+            for (auto market_update = snapshot_md_updates_ -> getNextToRead(); snapshot_md_updates_ -> size() && market_update; market_update = snapshot_md_updates_ -> getNextToRead()) {
+                logger_.log("%:% %() % Processing: %. \n",
+                    __FILE__, __LINE__, __func__,
+                    getCurrentTimeStr(&time_str_),
+                    market_update -> toString().c_str());
+                addToSnapshot(market_update);
+                snapshot_md_updates_ -> updateReadIndex();
+            }
+
+            if (getCurrentNanos() - last_snapshot_time_ > 60 * NANOS_TO_SECS) {
+                last_snapshot_time_ = getCurrentNanos();
+                publishSnapshot();
+            }
+        }
+    }
+
+    auto SnapshotSynthesizer::start() -> void {
+        run_ = true;
+        ASSERT(createAndStartThread(-1, "Exchange/SnapshotSynthesizer", [this]{ run(); } ) != nullptr,
+            "Failed to start SnapshotSynthesizer thread.");
+    }
+
+    auto SnapshotSynthesizer::stop() -> void {
+        run_ = false;
+    }
 }
 

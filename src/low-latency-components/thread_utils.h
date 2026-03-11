@@ -3,9 +3,8 @@
 #ifndef TRADINGECOSYSTEM_THREAD_UTILS_H
 #define TRADINGECOSYSTEM_THREAD_UTILS_H
 
-#include <iostream>
-#include <atomic>
 #include <thread>
+#include <iostream>
 
 namespace Common
 {

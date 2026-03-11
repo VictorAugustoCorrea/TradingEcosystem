@@ -1,3 +1,4 @@
+#include "snapshot_synthesizer.h"
 #include "market_data_publisher.h"
 
 namespace Exchange {

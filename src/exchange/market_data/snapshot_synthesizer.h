@@ -4,13 +4,10 @@
 #define TRADINGECOSYSTEM_SNAPSHOT_SYNTHESIZER_H
 
 #include "market_update.h"
-#include "exchange/matcher/me_order.h"
 #include "low-latency-components/types.h"
-#include "low-latency-components/macros.h"
 #include "low-latency-components/logging.h"
 #include "low-latency-components/mem_pool.h"
 #include "low-latency-components/mcast_socket.h"
-#include "low-latency-components/thread_utils.h"
 #include "low-latency-components/lock_free_queue.h"
 
 using namespace Common;
@@ -23,6 +20,8 @@ namespace Exchange {
         auto stop()  -> void;
         ~SnapshotSynthesizer() { stop(); }
         auto addToSnapshot(const MDPMarketUpdate *market_update);
+        auto publishSnapshot();
+        auto run();
 
         SnapshotSynthesizer() = delete;
         SnapshotSynthesizer(const SnapshotSynthesizer & ) = delete;

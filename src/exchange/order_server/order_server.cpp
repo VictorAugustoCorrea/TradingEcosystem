@@ -4,12 +4,12 @@ namespace Exchange {
     OrderServer::OrderServer(
         ClientRequestLFQueue *client_requests,
         MEClientResponseLFQueue *client_responses,
-        const std::string &iface,
+        std::string &iface,
         const int port) :
         logger_("exchange_order_server.log"),
         port_(port),
         tcp_server_(logger_),
-        iface_(iface),
+        iface_(std::move(iface)),
         fifo_sequencer_(client_requests, &logger_),
         outgoing_responses_(client_responses)
         {

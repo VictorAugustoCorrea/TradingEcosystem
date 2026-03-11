@@ -5,7 +5,6 @@
 
 #include "low-latency-components/macros.h"
 #include "low-latency-components/logging.h"
-#include "low-latency-components/thread_utils.h"
 #include "exchange/order_server/client_request.h"
 
 namespace Exchange {
@@ -22,7 +21,7 @@ namespace Exchange {
             if (pending_size_ >= pending_client_requests_.size()) {
                 FATAL("Too many pending requests");
             }
-            pending_client_requests_.at(pending_size_++) = std::move( RecvTimeClientRequest {rx_time, request} );
+            pending_client_requests_.at(pending_size_++) = RecvTimeClientRequest {rx_time, request} ;
         }
 
         auto sequenceAndPublish() {
@@ -44,7 +43,7 @@ namespace Exchange {
                     recv_time_,
                     request_.toString());
                 const auto next_write = incoming_requests_ -> getNextToWriteTo();
-                *next_write = std::move(request_);
+                *next_write = request_;
                 incoming_requests_ -> updateWriteIndex();
             }
             pending_size_ = 0;

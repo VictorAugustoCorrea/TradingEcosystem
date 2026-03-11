@@ -28,6 +28,7 @@ namespace Common {
             return socket_fd_;
         }
 
+        [[nodiscard]]
         auto join(const std::string &ip) const -> bool {
             return Common::join(socket_fd_, ip);
         }
