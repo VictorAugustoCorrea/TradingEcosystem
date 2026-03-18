@@ -40,6 +40,8 @@ namespace Trading {
             std::this_thread::sleep_for(5s);
         }
 
+        auto startSnapshotSync() -> void;
+
         MarketDataConsumer() = delete;
         MarketDataConsumer(const MarketDataConsumer & ) = delete;
         MarketDataConsumer(const MarketDataConsumer &&) = delete;
