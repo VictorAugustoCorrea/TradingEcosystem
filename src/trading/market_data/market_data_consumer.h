@@ -4,7 +4,6 @@
 #define TRADINGECOSYSTEM_MARKET_DATA_CONSUMER_H
 
 #include <map>
-#include <functional>
 #include "low-latency-components/macros.h"
 #include "exchange/market_data/market_update.h"
 #include "low-latency-components/thread_utils.h"
@@ -27,7 +26,7 @@ namespace Trading {
 
         auto start() -> void {
             run_ = true;
-            ASSERT(Common::createAndStartThread(-1, "Trading/MarketDataConsumer", [this] { run(); }) != nullptr,
+            ASSERT(createAndStartThread(-1, "Trading/MarketDataConsumer", [this] { run(); }) != nullptr,
                 "Failed to start MarketData thread.");
         }
         auto stop() -> void {
@@ -41,6 +40,8 @@ namespace Trading {
         }
 
         auto startSnapshotSync() -> void;
+        auto checkSnapshotSync() -> void;
+        auto queueMessage(bool is_snapshot, const Exchange::MDPMarketUpdate * request) -> void;
 
         MarketDataConsumer() = delete;
         MarketDataConsumer(const MarketDataConsumer & ) = delete;
