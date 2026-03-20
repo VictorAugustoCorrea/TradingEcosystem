@@ -1,5 +1,4 @@
 #include "market_data_consumer.h"
-
 #include <strstream>
 
 namespace Trading {
