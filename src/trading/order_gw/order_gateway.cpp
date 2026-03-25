@@ -1,16 +1,18 @@
 #include "order_gateway.h"
 
+#include <utility>
+
 namespace Trading {
     OrderGateway::OrderGateway(
         const ClientId client_id,
         Exchange::ClientRequestLFQueue *client_requests,
         Exchange::MEClientResponseLFQueue *client_responses,
-        const std::string &ip,
-        const std::string &iface,
+        std::string ip,
+        std::string iface,
         const int port) :
     client_id_(client_id),
-    ip_(ip),
-    iface_(iface),
+    ip_(std::move(ip)),
+    iface_(std::move(iface)),
     port_(port),
     outgoing_requests_(client_requests),
     incoming_responses_(client_responses),
@@ -78,7 +80,7 @@ namespace Trading {
 
                 ++next_exp_seq_num_;
                 const auto next_write = incoming_responses_ -> getNextToWriteTo();
-                *next_write = std::move(response -> me_client_response_);
+                *next_write = response -> me_client_response_;
                 incoming_responses_ -> updateWriteIndex();
             }
             memcpy(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);

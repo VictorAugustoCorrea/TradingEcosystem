@@ -17,7 +17,7 @@ namespace Trading {
         ClientId client_id,
         Exchange::MEMarketUpdateLFQueue *market_updates,
         const std::string &iface,
-        const std::string &snapshot_ip,
+        std::string snapshot_ip,
         const int &snapshot_port,
         const std::string &incremental_ip,
         const int &incremental_port);

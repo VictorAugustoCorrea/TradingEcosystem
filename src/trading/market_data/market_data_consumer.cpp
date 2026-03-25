@@ -1,12 +1,13 @@
 #include "market_data_consumer.h"
 #include <strstream>
+#include <utility>
 
 namespace Trading {
     MarketDataConsumer::MarketDataConsumer(
         const ClientId client_id,
         Exchange::MEMarketUpdateLFQueue *market_updates,
         const std::string &iface,
-        const std::string &snapshot_ip,
+        std::string snapshot_ip,
         const int &snapshot_port,
         const std::string &incremental_ip,
         const int &incremental_port) :
@@ -15,7 +16,7 @@ namespace Trading {
     incremental_mcast_socket_(logger_),
     snapshot_mcast_socket_(logger_),
     iface_(iface),
-    snapshot_ip_(snapshot_ip),
+    snapshot_ip_(std::move(snapshot_ip)),
     snapshot_port_(snapshot_port) {
 
         auto recv_callback = [this](auto socket) -> void {
@@ -112,36 +113,36 @@ namespace Trading {
         size_t num_incremental = 0;
         next_exp_inc_seq_num_ = last_snapshot_msg.order_id_ + 1;
 
-        for (auto inc_itr = incremental_queued_msgs_.begin(); inc_itr != incremental_queued_msgs_.end(); ++inc_itr) {
+        for (auto &[fst, snd] : incremental_queued_msgs_) {
             logger_.log("%:% %() % Checking next_exp: % vs seq: % %.\n",
                 __FILE__, __LINE__, __func__,
                 getCurrentTimeStr(&time_str_),
                 next_exp_inc_seq_num_,
-                inc_itr -> first,
-                inc_itr -> second.toString());
+                fst,
+                snd.toString());
 
-            if (inc_itr -> first < next_exp_inc_seq_num_)
+            if (fst < next_exp_inc_seq_num_)
                 continue;
 
-            if (inc_itr -> first != next_exp_inc_seq_num_) {
+            if (fst != next_exp_inc_seq_num_) {
                 logger_.log("%:% %() % Detected gap in incremental stream. Expected: %, found: % %.\n",
                     __FILE__, __LINE__, __func__,
                     getCurrentTimeStr(&time_str_),
                     next_exp_inc_seq_num_,
-                    inc_itr -> first,
-                    inc_itr -> second.toString());
+                    fst,
+                    snd.toString());
                 have_complete_incremental = false;
                 break;
             }
             logger_.log("%:% %() % % => %.\n",
                 __FILE__, __LINE__, __func__,
                 getCurrentTimeStr(&time_str_),
-                inc_itr -> first,
-                inc_itr -> second.toString());
+                fst,
+                snd.toString());
 
-            if (inc_itr -> second.type_ != Exchange::MEMarketUpdateType::SNAPSHOT_START &&
-                inc_itr -> second.type_ != Exchange::MEMarketUpdateType::SNAPSHOT_END)
-                final_events.push_back(inc_itr -> second);
+            if (snd.type_ != Exchange::MEMarketUpdateType::SNAPSHOT_START &&
+                snd.type_ != Exchange::MEMarketUpdateType::SNAPSHOT_END)
+                final_events.push_back(snd);
 
             ++next_exp_inc_seq_num_;
             ++num_incremental;
@@ -242,7 +243,7 @@ namespace Trading {
                     ++next_exp_inc_seq_num_;
 
                     const auto next_write = incoming_md_updates_ -> getNextToWriteTo();
-                    *next_write = std::move(request -> me_market_update_);
+                    *next_write = request -> me_market_update_;
                     incoming_md_updates_ -> updateWriteIndex();
                 }
             }

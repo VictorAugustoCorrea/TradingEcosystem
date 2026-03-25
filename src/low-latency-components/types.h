@@ -86,6 +86,14 @@ namespace Common {
         return "UNKNOWN";
     }
 
+    constexpr auto sideToIndex(Side side) noexcept {
+        return static_cast<size_t> (side) + 1;
+    }
+
+    constexpr auto sideToValue(Side side) noexcept {
+        return static_cast<int> (side);
+    }
+
     constexpr size_t ME_MAX_TICKERS = 8;
     constexpr size_t ME_MAX_NUM_CLIENTS = 256;
     constexpr size_t ME_MAX_PRICE_LEVELS = 256;

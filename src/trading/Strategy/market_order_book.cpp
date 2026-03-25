@@ -63,7 +63,7 @@ namespace Trading {
                 if (bids_by_price_) {
                     for (auto bid = bids_by_price_ -> next_entry_; bid != bids_by_price_; bid = bid -> next_entry_)
                         orders_at_price_pool_.deallocate(bid);
-                        orders_at_price_pool_.deallocate(bids_by_price_);
+                    orders_at_price_pool_.deallocate(bids_by_price_);
                 }
                 if (asks_by_price_) {
                     for (auto ask = asks_by_price_ -> next_entry_; ask != bids_by_price_; ask = ask -> next_entry_)

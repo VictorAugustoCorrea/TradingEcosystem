@@ -38,6 +38,7 @@ namespace Trading {
         next_order_(next_order)
         {}
 
+        [[nodiscard]]
         auto toString() const -> std::string {
             std::stringstream ss;
             ss  << "MarketOrder"
@@ -77,6 +78,7 @@ namespace Trading {
         next_entry_(next_entry)
         {}
 
+        [[nodiscard]]
         auto toString() const -> std::string {
             std::stringstream ss;
             ss  << "MarketOrdersAtPrice"
@@ -99,6 +101,7 @@ namespace Trading {
         Qty bid_qty_ = Qty_INVALID;
         Qty ask_qty_ = Qty_INVALID;
 
+        [[nodiscard]]
         auto toString() const -> std::string {
             std::stringstream ss;
             ss  << "BBO"

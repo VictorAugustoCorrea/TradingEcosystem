@@ -20,8 +20,11 @@ namespace Trading {
             trade_engine_ = trade_engine;
         }
 
+        [[nodiscard]]
         auto toString(bool detailed, bool validity_check) const -> std::string;
         auto onMarketUpdate(const Exchange::MEMarketUpdate *market_update) noexcept -> void;
+        [[nodiscard]]
+        auto getBBO() const noexcept -> const BBO* { return &bbo_; }
         auto updateBBO(const bool update_bid, const bool update_ask) noexcept {
             if (update_bid) {
                 if (bids_by_price_) {
@@ -72,6 +75,7 @@ namespace Trading {
             return price % ME_MAX_PRICE_LEVELS;
         }
 
+        [[nodiscard]]
         auto getOrdersAtPrice(const Price price) const noexcept -> MarketOrdersAtPrice * {
             return price_orders_at_price_.at(priceToIndex(price));
         }

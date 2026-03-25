@@ -17,8 +17,8 @@ namespace Trading {
             ClientId client_id,
             Exchange::ClientRequestLFQueue *client_requests,
             Exchange::MEClientResponseLFQueue *client_responses,
-            const std::string &ip,
-            const std::string &iface,
+            std::string ip,
+            std::string iface,
             int port);
 
         auto run() noexcept -> void;
