@@ -71,7 +71,8 @@ namespace Common {
     enum class Side : int8_t {
         INVALID = 0,
         BUY = 1,
-        SELL = -1
+        SELL = -1,
+        MAX = 2
     };
 
     inline auto sideToString(const Side side) -> std::string {
@@ -82,6 +83,8 @@ namespace Common {
                 return "SELL";
             case Side::INVALID:
                 return "INVALID";
+            case Side::MAX:
+                return "MAX";
         }
         return "UNKNOWN";
     }
