@@ -23,7 +23,7 @@ namespace Trading {
 
         auto newOrder(OMOrder *order, TickerId ticker_id, Price price, Side side, Qty qty) noexcept -> void;
         auto cancelOrder(OMOrder *order) noexcept -> void;
-        auto moveOrder(OMOrder *order, TickerId ticker_id, Price price, Side side, Qty qty) noexcept {
+        auto moveOrder(OMOrder *order, const TickerId ticker_id, const Price price, const Side side, const Qty qty) noexcept {
             switch (order -> order_state_) {
                 case OMOrderState::LIVE: {
                     if (order -> price_ != price || order -> qty_ != qty)
@@ -34,8 +34,7 @@ namespace Trading {
 
                 case OMOrderState::DEAD: {
                     if (price != Price_INVALID) {
-                        const auto risk_result = risk_manager_.checkPreTradeRisk(ticker_id, price, side, qty);
-                        if (risk_result == RiskCheckResult::ALLOWED)
+                        if (const auto risk_result = risk_manager_.checkPreTradeRisk(ticker_id, side, qty); risk_result == RiskCheckResult::ALLOWED)
                             newOrder(order, ticker_id, price, side, qty);
                         else
                             logger_ -> log("%:% %() % Ticker:  %, Side: %, Qty: %, RiskCheckResult: %. \n",
@@ -44,7 +43,7 @@ namespace Trading {
                                 tickerIdToString(ticker_id),
                                 sideToString(side),
                                 qtyToString(qty),
-                                riskCheckResultToString(risk_resul));
+                                riskCheckResultToString(risk_result));
                     }
                 } break;
 

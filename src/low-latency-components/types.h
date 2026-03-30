@@ -97,6 +97,40 @@ namespace Common {
         return static_cast<int> (side);
     }
 
+    struct RiskCfg {
+        Qty max_order_size_ = 0;
+        Qty max_position_ = 0;
+        double max_loss_ = 0;
+
+        [[nodiscard]]
+        auto toString() const {
+            std::stringstream ss;
+            ss  << "RiskCfg { "
+                << "Max-order_size: " << qtyToString(max_order_size_)
+                << ", Max-position: " << qtyToString(max_position_)
+                << ", Max-loss: " << max_loss_
+                << ". } ";
+            return ss.str();
+        }
+    };
+
+    struct TradeEngineCfg {
+        Qty clip_ = 0;
+        double threshold_ = 0;
+        RiskCfg risk_cfg_;
+
+        [[nodiscard]]
+        auto toString() const {
+            std::stringstream ss;
+            ss  << "TradeEngineCfg { "
+                << "Clip: " << qtyToString(clip_)
+                << ", Threshold: " << threshold_
+                << ", Risk: " << risk_cfg_.toString()
+                << ". } ";
+            return ss.str();
+        }
+    };
+
     constexpr size_t ME_MAX_TICKERS = 8;
     constexpr size_t ME_MAX_NUM_CLIENTS = 256;
     constexpr size_t ME_MAX_PRICE_LEVELS = 256;
@@ -104,5 +138,6 @@ namespace Common {
     constexpr size_t ME_MAX_CLIENT_UPDATES = 8192;
     constexpr size_t ME_MAX_MARKET_UPDATES = 8192;
 
+    typedef std::array<TradeEngineCfg, ME_MAX_TICKERS> TradeEngineCfgHashMap;
 }
 #endif //TRADINGECOSYSTEM_TYPES_H
