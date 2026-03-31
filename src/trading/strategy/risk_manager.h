@@ -30,7 +30,7 @@ namespace Trading {
             case RiskCheckResult::ALLOWED:
                 return "ALLOWED";
         }
-        return "";
+        return " ";
     }
 
     struct RiskInfo {

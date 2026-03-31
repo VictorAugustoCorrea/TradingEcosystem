@@ -131,6 +131,38 @@ namespace Common {
         }
     };
 
+    enum class AlgoType : int8_t {
+        INVALID = 0,
+        RANDOM = 1,
+        MAKER = 2,
+        TAKER = 3,
+        MAX = 4
+    };
+
+    inline auto algoTypeToString(const AlgoType type) -> std::string {
+        switch (type) {
+            case AlgoType::RANDOM:
+                return "RANDOM";
+            case AlgoType::MAKER:
+                return "MAKER";
+            case AlgoType::TAKER:
+                return "TAKER";
+            case AlgoType::INVALID:
+                return "INVALID";
+            case AlgoType::MAX:
+                return "MAX";
+        }
+        return "UNKNOWN";
+    }
+
+    inline auto stringToAlgoType(const std::string &str) -> AlgoType {
+        for (auto i = static_cast<int>(AlgoType::INVALID); i <= static_cast<int>(AlgoType::MAX); ++i) {
+            if (const auto algo_type = static_cast<AlgoType>(i); algoTypeToString(algo_type) == str)
+                return algo_type;
+        }
+        return AlgoType::INVALID;
+    }
+
     constexpr size_t ME_MAX_TICKERS = 8;
     constexpr size_t ME_MAX_NUM_CLIENTS = 256;
     constexpr size_t ME_MAX_PRICE_LEVELS = 256;
