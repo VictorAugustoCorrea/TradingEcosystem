@@ -16,7 +16,7 @@ namespace Trading {
         trade_engine -> algoOnOrderBookUpdate_ = [this](auto ticker_id, auto price, auto side, auto book) {
             onOrderBookUpdate(ticker_id, price, side, book);
         };
-        trade_engine -> algoTradeUpdate_ = [this](auto market_update, auto book) {
+        trade_engine -> algoOnTradeUpdate_ = [this](auto market_update, auto book) {
           onTradeUpdate(market_update, book);
         };
         trade_engine -> algoOnOrderUpdate_ = [this](auto client_response) {

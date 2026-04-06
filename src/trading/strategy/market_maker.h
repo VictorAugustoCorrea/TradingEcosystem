@@ -40,8 +40,8 @@ namespace Trading {
 
                 const auto clip = ticker_cfg_.at(ticker_id).clip_;
                 const auto threshold = ticker_cfg_.at(ticker_id).threshold_;
-                const auto bid_price = bbo -> bid_price_ - (fair_price - bbo -> bid_price_ >= threshold ? 0 : 1);
-                const auto ask_price = bbo -> ask_price_ + (bbo -> ask_price_ - fair_price >= threshold ? 0 : 1);
+                const auto bid_price = bbo -> bid_price_ - (fair_price - static_cast<double>(bbo -> bid_price_) >= threshold ? 0 : 1);
+                const auto ask_price = bbo -> ask_price_ + (static_cast<double>(bbo -> ask_price_) - fair_price >= threshold ? 0 : 1);
                 order_manager_ -> moveOrders(ticker_id, bid_price, ask_price, clip);
             }
         }

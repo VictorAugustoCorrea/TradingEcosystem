@@ -42,6 +42,7 @@ namespace Trading {
         Qty qty_ = Qty_INVALID;
         OMOrderState order_state_ = OMOrderState::INVALID;
 
+        [[nodiscard]]
         auto toString() const {
             std::stringstream ss;
             ss  << "OMOrder: "

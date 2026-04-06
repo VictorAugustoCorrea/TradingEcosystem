@@ -14,10 +14,11 @@ namespace Trading {
     struct PositionInfo {
         int32_t position_ = 0;
         double real_pnl_ = 0, unreal_pnl_ = 0, total_pnl_ = 0;
-        std::array<double, sideToIndex(Side::MAX) + 1> open_vwap_;
+        std::array<double, sideToIndex(Side::MAX) + 1> open_vwap_{};
         Qty volume_ = 0;
         const BBO *bbo_ = nullptr;
 
+        [[nodiscard]]
         auto toString() const {
             std::stringstream ss;
             ss  << "Position:"
@@ -39,18 +40,18 @@ namespace Trading {
             const auto side_index = sideToIndex(client_response -> side_);
             const auto opp_side_index = sideToIndex(client_response -> side_ == Side::BUY ? Side::SELL : Side::BUY);
             const auto side_value = sideToValue(client_response -> side_);
-            position_ += client_response -> exec_qty_ * side_value;
+            position_ += static_cast<int>(client_response -> exec_qty_) * side_value;
             volume_ += client_response -> exec_qty_;
 
             if (old_position * sideToValue(client_response -> side_) >= 0) {
-                open_vwap_[side_index] += client_response -> price_ * client_response -> exec_qty_;
+                open_vwap_[side_index] += static_cast<double>(client_response -> price_) * static_cast<double>(client_response -> exec_qty_);
             }
             else {
-                const auto opp_side_vwap = open_vwap_[opp_side_index] = opp_side_index * std::abs(position_);
+                const auto opp_side_vwap = open_vwap_[opp_side_index] = static_cast<double>(opp_side_index) * std::abs(position_);
                 real_pnl_ += std::min(static_cast<int32_t> (client_response -> exec_qty_), std::abs(old_position))
-                            * (opp_side_vwap - client_response -> price_) * sideToValue(client_response -> side_);
+                            * (opp_side_vwap - static_cast<double>(client_response -> price_)) * sideToValue(client_response -> side_);
                 if (position_ * old_position < 0) {
-                    open_vwap_[side_index] = client_response -> price_ * std::abs(position_);
+                    open_vwap_[side_index] = static_cast<double>(client_response -> price_) * std::abs(position_);
                     open_vwap_[opp_side_index] = 0;
                 }
             }
@@ -60,9 +61,9 @@ namespace Trading {
             }
             else {
                 if (position_ > 0)
-                    unreal_pnl_ = (client_response -> price_ - open_vwap_[sideToIndex(Side::BUY)] / std::abs(position_)) * std::abs(position_);
+                    unreal_pnl_ = (static_cast<double>(client_response -> price_) - open_vwap_[sideToIndex(Side::BUY)] / std::abs(position_)) * std::abs(position_);
                 else
-                    unreal_pnl_ = (open_vwap_[sideToIndex(Side::SELL)] / std::abs(position_) - client_response -> price_) * std::abs(position_);
+                    unreal_pnl_ = (open_vwap_[sideToIndex(Side::SELL)] / std::abs(position_) - static_cast<double>(client_response -> price_)) * std::abs(position_);
             }
             total_pnl_ = unreal_pnl_ + real_pnl_;
             std::string time_str;
@@ -78,7 +79,7 @@ namespace Trading {
             bbo_ = bbo;
 
             if (position_ && bbo -> bid_price_ != Price_INVALID && bbo -> ask_price_ != Price_INVALID) {
-                const auto mid_price = (bbo -> bid_price_ + bbo -> ask_price_) * 0.5;
+                const auto mid_price = (static_cast<double>(bbo -> bid_price_) + static_cast<double>(bbo -> ask_price_)) * 0.5;
                 if (position_ > 0)
                     unreal_pnl_ = open_vwap_[sideToIndex(Side::BUY)] / std::abs(position_) * std::abs(position_);
                 else
@@ -100,6 +101,7 @@ namespace Trading {
     public:
         explicit PositionKeeper(Logger *logger) : logger_(logger) {}
 
+        [[nodiscard]]
         auto getPositionInfo(const TickerId ticker_id) const noexcept {
             return &ticker_position_.at(ticker_id);
         }
@@ -112,6 +114,7 @@ namespace Trading {
             ticker_position_.at(ticker_id).updateBBO(bbo, logger_);
         }
 
+        [[nodiscard]]
         auto toString() const {
             double total_pnl = 0;
             Qty total_vol = 0;

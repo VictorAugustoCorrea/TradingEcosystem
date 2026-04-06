@@ -37,6 +37,7 @@ namespace Trading {
         const PositionInfo *position_info_ = nullptr;
         RiskCfg risk_cfg_;
 
+        [[nodiscard]]
         auto checkPreTradeRisk(const Side side, const Qty qty) const noexcept {
             if (UNLIKELY(qty > risk_cfg_.max_order_size_))
                 return RiskCheckResult::ORDER_TOO_LARGE;
@@ -63,6 +64,7 @@ namespace Trading {
     public:
         RiskManager(Logger *logger, const PositionKeeper *position_keeper, const TradeEngineCfgHashMap &ticker_cfg);
 
+        [[nodiscard]]
         auto checkPreTradeRisk(const TickerId ticker_id, const Side side, const Qty qty) const noexcept{
             return ticker_risk_.at(ticker_id).checkPreTradeRisk(side, qty);
         }

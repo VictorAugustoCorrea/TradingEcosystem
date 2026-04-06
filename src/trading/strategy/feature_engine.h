@@ -18,7 +18,7 @@ namespace Trading {
 
         auto onOrderBookUpdate(const TickerId ticker_id, const Price price, const Side side, const MarketOrderBook *book) noexcept -> void {
             if (const auto bbo = book -> getBBO(); bbo -> bid_price_ != Price_INVALID && bbo -> ask_price_ != Price_INVALID) {
-                mkt_price_ = (bbo -> bid_price_ * bbo -> ask_qty_ + bbo -> ask_price_ * bbo -> bid_qty_) / static_cast<double> (bbo -> bid_qty_ + bbo -> ask_qty_);
+                mkt_price_ = (static_cast<double> (bbo -> bid_price_ )* bbo -> ask_qty_ + static_cast<double>(bbo -> ask_price_) * bbo -> bid_qty_) / static_cast<double> (bbo -> bid_qty_ + bbo -> ask_qty_);
             }
 
             logger_ -> log("%:% %() % ticker: %, price: %, side: %, mkt price: %, agg-trade-ratio: %. \n",
@@ -44,8 +44,8 @@ namespace Trading {
                 agg_trade_qty_ratio_);
         }
 
-        auto getMktPrice() const noexcept { return mkt_price_; }
-        auto getAggTradeQtyRatio() const noexcept { return agg_trade_qty_ratio_; }
+        [[nodiscard]] auto getMktPrice() const noexcept { return mkt_price_; }
+        [[nodiscard]] auto getAggTradeQtyRatio() const noexcept { return agg_trade_qty_ratio_; }
 
         FeatureEngine() = delete;
         FeatureEngine(const FeatureEngine & ) = delete;
