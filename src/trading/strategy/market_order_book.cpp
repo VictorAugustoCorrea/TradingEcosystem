@@ -52,7 +52,7 @@ namespace Trading {
             case Exchange::MEMarketUpdateType::TRADE: {
                 trade_engine_ -> onTradeUpdate(market_update, this);
                 return;
-            } break;
+            }
 
             case Exchange::MEMarketUpdateType::CLEAR: {
                 for (const auto &order: oid_to_order_) {
@@ -66,7 +66,7 @@ namespace Trading {
                     orders_at_price_pool_.deallocate(bids_by_price_);
                 }
                 if (asks_by_price_) {
-                    for (auto ask = asks_by_price_ -> next_entry_; ask != bids_by_price_; ask = ask -> next_entry_)
+                    for (auto ask = asks_by_price_ -> next_entry_; ask != asks_by_price_; ask = ask -> next_entry_)
                         orders_at_price_pool_.deallocate(ask);
                     orders_at_price_pool_.deallocate(asks_by_price_);
                 }
@@ -81,11 +81,13 @@ namespace Trading {
 
         updateBBO(bid_updated, ask_updated);
 
-        trade_engine_ -> onOrderBookUpdate(market_update -> ticker_id_, market_update -> price_, market_update -> side_);
-        logger_ -> log("%:% %()  % OrderBook\n%\n",
+        logger_->log("%:% %() % % %",
             __FILE__, __LINE__, __func__,
-            getCurrentTimeStr(&time_str_),
-            toString(false, true));
+                 getCurrentTimeStr(&time_str_),
+                 market_update -> toString(),
+                 bbo_.toString());
+
+        trade_engine_ -> onOrderBookUpdate(market_update -> ticker_id_, market_update -> price_, market_update -> side_, this);
     }
 
     auto MarketOrderBook::toString(const bool detailed, const bool validity_check) const -> std::string {
