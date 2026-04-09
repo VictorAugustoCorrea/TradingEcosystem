@@ -35,13 +35,12 @@ namespace App {
         Exchange::OrderServer*         order_server_          = nullptr;
 
         /** Network config */
-        static constexpr auto MKT_PUB_IFACE  = "lo";
-        static constexpr auto SNAP_PUB_IP     = "233.252.14.1";
-        static constexpr auto INC_PUB_IP      = "233.252.14.3";
-        static constexpr int  SNAP_PUB_PORT   = 20000;
-        static constexpr int  INC_PUB_PORT    = 20001;
-        static constexpr auto ORDER_GW_IFACE  = "lo";
-        static constexpr int  ORDER_GW_PORT   = 12345;
+        static constexpr const auto* MKT_PUB_IFACE   = "lo";
+        static constexpr const auto* SNAP_PUB_IP     = "233.252.14.1";
+        static constexpr const auto* INC_PUB_IP      = "233.252.14.3";
+        static constexpr int SNAP_PUB_PORT           = 20000;
+        static constexpr int INC_PUB_PORT            = 20001;
+        static constexpr const auto* ORDER_GW_IFACE  = "lo";
+        static constexpr int ORDER_GW_PORT           = 12345;
     };
-
 } // namespace App

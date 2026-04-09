@@ -8,21 +8,29 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-file(GLOB_RECURSE PROJECT_SOURCES
-        CONFIGURE_DEPENDS
-        ${PROJECT_SOURCE_DIR}/src/*.cpp
+# --------------------------
+# Unified Executable
+# CMakeLists.txt vive em TradingEcosystem/ (raiz).
+# Fontes ficam em TradingEcosystem/src/.
+# --------------------------
+file(GLOB_RECURSE EXCHANGE_SOURCES
+        ${PROJECT_SOURCE_DIR}/src/exchange/*.cpp
+)
+
+file(GLOB_RECURSE TRADING_SOURCES
+        ${PROJECT_SOURCE_DIR}/src/trading/*.cpp
 )
 
 add_executable(TradingEcosystem
-        ${PROJECT_SOURCES}
+        ${PROJECT_SOURCE_DIR}/src/main.cpp
+        ${EXCHANGE_SOURCES}
+        ${TRADING_SOURCES}
 )
 
-target_include_directories(TradingEcosystem
-        PRIVATE
+target_include_directories(TradingEcosystem PRIVATE
         ${PROJECT_SOURCE_DIR}/src
 )
 
-target_link_libraries(TradingEcosystem
-        PRIVATE
+target_link_libraries(TradingEcosystem PRIVATE
         Threads::Threads
 )

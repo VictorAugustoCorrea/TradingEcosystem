@@ -1,0 +1,10 @@
+../low-latency-components/socket_utils.h:127 CreateSocket() Thu Apr  9 18:47:21 2026 cfg: SocketCfg [  ip: 233.252.14.1 iface: lo port: 20000 is_udp: 1 is_listening: 0 needs_SO_timestamp: 0 ]  
+../exchange/market_data/snapshot_synthesizer.cpp:113 run() Thu Apr  9 18:47:22 2026. 
+../exchange/market_data/snapshot_synthesizer.cpp:63 publishSnapshot() Thu Apr  9 18:47:22 2026 MDPMarketUpdate:  [  seq: 0 MEMarketUpdate:  [  Type: SNAPSHOT_START Ticker: INVALID Order_id: 0 Side: INVALID Qty: INVALID Price: INVALID Priority: INVALID ]  ] . 
+../exchange/market_data/snapshot_synthesizer.cpp:76 publishSnapshot() Thu Apr  9 18:47:22 2026 MDPMarketUpdate:  [  seq: 1 MEMarketUpdate:  [  Type: CLEAR Ticker: 0 Order_id: INVALID Side: INVALID Qty: INVALID Price: INVALID Priority: INVALID ]  ] . 
+../exchange/market_data/snapshot_synthesizer.cpp:76 publishSnapshot() Thu Apr  9 18:47:22 2026 MDPMarketUpdate:  [  seq: 2 MEMarketUpdate:  [  Type: CLEAR Ticker: 1 Order_id: INVALID Side: INVALID Qty: INVALID Price: INVALID Priority: INVALID ]  ] . 
+../exchange/market_data/snapshot_synthesizer.cpp:76 publishSnapshot() Thu Apr  9 18:47:22 2026 MDPMarketUpdate:  [  seq: 3 MEMarketUpdate:  [  Type: CLEAR Ticker: 2 Order_id: INVALID Side: INVALID Qty: INVALID Price: INVALID Priority: INVALID ]  ] . 
+../exchange/market_data/snapshot_synthesizer.cpp:76 publishSnapshot() Thu Apr  9 18:47:22 2026 MDPMarketUpdate:  [  seq: 4 MEMarketUpdate:  [  Type: CLEAR Ticker: 3 Order_id: INVALID Side: INVALID Qty: INVALID Price: INVALID Priority: INVALID ]  ] . 
+../exchange/market_data/snapshot_synthesizer.cpp:98 publishSnapshot() Thu Apr  9 18:47:22 2026 MDPMarketUpdate:  [  seq: 5 MEMarketUpdate:  [  Type: SNAPSHOT_END Ticker: INVALID Order_id: 0 Side: INVALID Qty: INVALID Price: INVALID Priority: INVALID ]  ] . 
+../low-latency-components/mcast_socket.h:65 sendAndRecv() Thu Apr  9 18:47:22 2026 send socket: 9 , len: 252
+../exchange/market_data/snapshot_synthesizer.cpp:105 publishSnapshot() Thu Apr  9 18:47:22 2026 Published snapshot of 5 orders. 

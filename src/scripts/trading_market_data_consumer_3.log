@@ -1,0 +1,2 @@
+../low-latency-components/socket_utils.h:127 CreateSocket() Thu Apr  9 18:47:25 2026 cfg: SocketCfg [  ip: 233.252.14.3 iface: lo port: 20001 is_udp: 1 is_listening: 1 needs_SO_timestamp: 0 ]  
+../trading/market_data/market_data_consumer.cpp:36 run() Thu Apr  9 18:47:25 2026. 
