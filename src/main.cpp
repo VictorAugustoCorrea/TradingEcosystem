@@ -1,81 +1,143 @@
-#include "low-latency-components/thread_utils.h"
-#include "low-latency-components/mem_pool.h"
-#include "low-latency-components/lock_free_queue.h"
-#include "low-latency-components/logging.h"
-#include "low-latency-components/tcp_server.h"
-#include "exchange/matcher/matching_engine.h"
-#include "exchange/market_data/market_data_publisher.h"
-#include "exchange/order_server/order_server.h"
 #include <csignal>
+#include <cstdlib>
+#include <iostream>
+
+#include "low-latency-components/logging.h"
+#include "low-latency-components/lock_free_queue.h"
+#include "exchange/matcher/matching_engine.h"
+
+#include "exchange/exchange_application.h"
+#include "trading/trade_client_application.h"
 
 using namespace Common;
 using namespace std::literals::chrono_literals;
 
-Logger* logger = nullptr;
-Exchange::MatchingEngine* matching_engine = nullptr;
-Exchange::MarketDataPublisher *market_data_publisher = nullptr;
-Exchange::OrderServer *order_server = nullptr;
+/** ------------------------------------------------------------------ *
+ *  Globals (needed by the signal handler)
+ * ------------------------------------------------------------------ */
+static Logger*                      exchange_logger  = nullptr;
+static Logger*                      trading_logger   = nullptr;
+static App::ExchangeApplication*    exchange_app     = nullptr;
+static App::TradeClientApplication* trade_client_app = nullptr;
 
-/** Signal handler */
-void signal_handler(int) {
-    std::this_thread::sleep_for(10s);
+/** ------------------------------------------------------------------ *
+ *  Signal handler — graceful shutdown on Ctrl-C
+ * ------------------------------------------------------------------ */
+static void signal_handler(int) {
+    std::this_thread::sleep_for(2s);
 
-    delete logger;
-    logger = nullptr;
-    delete matching_engine;
-    matching_engine = nullptr;
-    delete market_data_publisher;
-    market_data_publisher = nullptr;
-    delete order_server;
-    order_server = nullptr;
+    delete trade_client_app; trade_client_app = nullptr;
+    delete exchange_app;     exchange_app     = nullptr;
+    delete trading_logger;   trading_logger   = nullptr;
+    delete exchange_logger;  exchange_logger  = nullptr;
 
-    std::this_thread::sleep_for(10s);
+    std::this_thread::sleep_for(2s);
     exit(EXIT_SUCCESS);
 }
 
-int main(int, char **)
-{
-    logger = new Logger("exchange_main.log");
-    std::signal(SIGINT, signal_handler);
+/** ------------------------------------------------------------------ *
+ *  Argument parsing
+ * ------------------------------------------------------------------ */
+static TradeEngineCfgHashMap parseTickers(const int argc, char** argv, const int start_idx) {
+    TradeEngineCfgHashMap cfg;
+    size_t ticker_id = 0;
 
-    constexpr int sleep_time = 100 * 1000;
-
-    Exchange::ClientRequestLFQueue client_requests(ME_MAX_CLIENT_UPDATES);
-    Exchange::MEClientResponseLFQueue client_responses(ME_MAX_CLIENT_UPDATES);
-    Exchange::MEMarketUpdateLFQueue market_updates(ME_MAX_CLIENT_UPDATES);
-
-    std::string time_str;
-    logger -> log("%:% %() % Starting Matching Engine ... \n",
-        __FILE__, __LINE__, __func__,
-        getCurrentTimeStr(&time_str));
-    matching_engine = new Exchange::MatchingEngine(&client_requests, &client_responses, &market_updates);
-    matching_engine -> start();
-
-    const std::string mkt_pub_iface = "lo";
-    const std::string snap_pub_ip = "233.252.14.1", inc_pub_ip = "233.252.14.3";
-    constexpr int snap_pub_port = 20000, inc_pub_port = 20001;
-
-    logger -> log("%:% %() % Starting Market Data Publisher... \n",
-        __FILE__, __LINE__, __func__,
-        getCurrentTimeStr(&time_str));
-    market_data_publisher = new Exchange::MarketDataPublisher(&market_updates, mkt_pub_iface, snap_pub_ip, snap_pub_port, inc_pub_ip, inc_pub_port);
-    market_data_publisher -> start();
-
-    std::string order_gw_iface = "lo";
-    constexpr int order_gw_port = 12345;
-
-    logger -> log("%:% % () % Starting Order Server... \n",
-        __FILE__, __LINE__, __func__,
-        getCurrentTimeStr(&time_str));
-    order_server = new Exchange::OrderServer(&client_requests, &client_responses, order_gw_iface, order_gw_port);
-    order_server -> start();
-
-    while (true){
-        logger -> log("%:% %() % Sleeping for a few milliseconds ...\n",
-            __FILE__, __LINE__, __func__,
-            getCurrentTimeStr(&time_str));
-        usleep(sleep_time * 100);
+    for (int i = start_idx; i + 4 < argc; i += 5, ++ticker_id) {
+        cfg[ticker_id] = {
+            static_cast<Qty>(strtol(argv[i],     nullptr, 10)),
+            std::strtod(argv[i + 1], nullptr),
+            {
+                static_cast<Qty>(strtol(argv[i + 2], nullptr, 10)),
+                static_cast<Qty>(strtol(argv[i + 3], nullptr, 10)),
+                std::strtod(argv[i + 4], nullptr)
+            }
+        };
     }
 
-    return 0;
+    return cfg;
+}
+
+/** ------------------------------------------------------------------ *
+ *  main
+ *
+ *  With exchange:    <binary> --exchange <client_id> <algo_type> [ticker params...]
+ *  Client only:      <binary>            <client_id> <algo_type> [ticker params...]
+ * ------------------------------------------------------------------ */
+int main(const int argc, char** argv) {
+
+    if (argc < 3) {
+        std::cerr << "Usage: [--exchange] <client_id> <algo_type> [ticker params (5 each)...]\n";
+        return EXIT_FAILURE;
+    }
+
+    std::signal(SIGINT, signal_handler);
+
+    /** Detect --exchange flag */
+    int  arg_offset     = 1;
+    bool start_exchange = false;
+
+    if (std::string(argv[1]) == "--exchange") {
+        start_exchange = true;
+        arg_offset     = 2;
+
+        if (argc < 4) {
+            std::cerr << "Usage: --exchange <client_id> <algo_type> [ticker params (5 each)...]\n";
+            return EXIT_FAILURE;
+        }
+    }
+
+    const auto client_id  = static_cast<ClientId>(strtol(argv[arg_offset], nullptr, 10));
+    srand(client_id);
+
+    const auto algo_type  = stringToAlgoType(argv[arg_offset + 1]);
+    const auto ticker_cfg = parseTickers(argc, argv, arg_offset + 2);
+
+    /** Loggers */
+    exchange_logger = new Logger("exchange_main.log");
+    trading_logger  = new Logger("trading_main_" + std::to_string(client_id) + ".log");
+
+    /**
+     * Every process needs its own queues:
+     *   --exchange mode : queues are shared between ExchangeApplication and TradeEngine
+     *                     (same process, zero-copy via lock-free queues)
+     *   client-only mode: queues are local — MarketDataConsumer → market_updates → TradeEngine
+     *                     and TradeEngine ↔ OrderGateway via client_requests/responses
+     */
+    Exchange::ClientRequestLFQueue    client_requests(ME_MAX_CLIENT_UPDATES);
+    Exchange::MEClientResponseLFQueue client_responses(ME_MAX_CLIENT_UPDATES);
+    Exchange::MEMarketUpdateLFQueue   market_updates(ME_MAX_CLIENT_UPDATES);
+
+    /** Start exchange (only the designated host process) */
+    if (start_exchange) {
+        exchange_app = new App::ExchangeApplication(
+            &client_requests, &client_responses, &market_updates,
+            exchange_logger);
+        exchange_app->start();
+    }
+
+    /** Start trading client — always receives real queue pointers */
+    trade_client_app = new App::TradeClientApplication(
+        client_id, algo_type, ticker_cfg,
+        &client_requests,
+        &client_responses,
+        &market_updates,
+        start_exchange,
+        trading_logger);
+    trade_client_app->start();
+
+    /** Run strategy-specific logic */
+    if (algo_type == AlgoType::RANDOM)
+        trade_client_app->runRandomAlgo();
+
+    /** Wait for the engine to go quiet, then shut down cleanly */
+    trade_client_app->waitUntilSilent(/*threshold_seconds=*/30, /*poll_seconds=*/5);
+    trade_client_app->stop();
+
+    delete trade_client_app; trade_client_app = nullptr;
+    delete exchange_app;     exchange_app     = nullptr;
+    delete trading_logger;   trading_logger   = nullptr;
+    delete exchange_logger;  exchange_logger  = nullptr;
+
+    std::this_thread::sleep_for(2s);
+    return EXIT_SUCCESS;
 }

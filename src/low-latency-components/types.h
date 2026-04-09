@@ -3,6 +3,7 @@
 #ifndef TRADINGECOSYSTEM_TYPES_H
 #define TRADINGECOSYSTEM_TYPES_H
 
+#include <array>
 #include <limits>
 #include <cstdint>
 #include "macros.h"
@@ -163,12 +164,13 @@ namespace Common {
         return AlgoType::INVALID;
     }
 
-    constexpr size_t ME_MAX_TICKERS = 8;
-    constexpr size_t ME_MAX_NUM_CLIENTS = 256;
-    constexpr size_t ME_MAX_PRICE_LEVELS = 256;
-    constexpr size_t ME_MAX_ORDER_IDS = 1024 * 64;
-    constexpr size_t ME_MAX_CLIENT_UPDATES = 8192;
-    constexpr size_t ME_MAX_MARKET_UPDATES = 8192;
+    /** Resetting because my PC is really weak :( */
+    constexpr size_t ME_MAX_TICKERS = 4;
+    constexpr size_t ME_MAX_NUM_CLIENTS = 16;
+    constexpr size_t ME_MAX_PRICE_LEVELS = 64;
+    constexpr size_t ME_MAX_ORDER_IDS = 4096;
+    constexpr size_t ME_MAX_CLIENT_UPDATES = 512;
+    constexpr size_t ME_MAX_MARKET_UPDATES = 512;
 
     typedef std::array<TradeEngineCfg, ME_MAX_TICKERS> TradeEngineCfgHashMap;
 }

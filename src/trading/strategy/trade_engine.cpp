@@ -110,7 +110,7 @@ namespace Trading {
             client_request -> toString().c_str());
 
         const auto next_write = outgoing_ogw_requests_ -> getNextToWriteTo();
-        *next_write = std::move(*client_request);
+        *next_write = *client_request;
         outgoing_ogw_requests_ -> updateWriteIndex();
     }
 
