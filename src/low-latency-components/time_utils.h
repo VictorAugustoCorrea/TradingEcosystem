@@ -3,9 +3,10 @@
 #ifndef TRADINGECOSYSTEM_TIME_UTILS_H
 #define TRADINGECOSYSTEM_TIME_UTILS_H
 
-#include <chrono>
 #include <ctime>
+#include <chrono>
 #include <string>
+#include "perf_utils.h"
 
 namespace Common
 {
@@ -24,11 +25,13 @@ namespace Common
     }
     inline auto& getCurrentTimeStr(std::string* time_str)
     {
-        const auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        time_str -> assign(ctime(&time));
+        const auto clock = std::chrono::system_clock::now();
+        const auto time = std::chrono::system_clock::to_time_t(clock);
 
-        if (!time_str -> empty())
-            time_str -> at(time_str -> length() - 1) = '\0';
+        char nanos_str[24];
+        sprintf(nanos_str, "%.8s.%09ld", ctime(&time) + 11,
+            std::chrono::duration_cast<std::chrono::nanoseconds> (clock.time_since_epoch()).count() % NANOS_TO_SECS);
+        time_str -> assign(nanos_str);
         return *time_str;
     }
 }
