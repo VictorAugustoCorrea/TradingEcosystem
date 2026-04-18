@@ -27,11 +27,20 @@ namespace Exchange {
                 outgoing_md_updates_ -> size() && market_update;
                 market_update = outgoing_md_updates_ -> getNextToRead()) {
 
+                TTT_MEASURE(T5_MarketDataPublisher_LFQueue_read, logger_);
+
                 logger_.log("%:% %() % Sending seq: %. \n",
                     __FILE__, __LINE__, __func__,
                     getCurrentTimeStr(&time_str_),
                     next_inc_seq_num_,
                     market_update -> toString().c_str());
+
+                START_MEASURE(Exchange_McastSocket_send);
+                incremental_socket_.send(&next_inc_seq_num_, sizeof(next_inc_seq_num_));
+                incremental_socket_.send(market_update, sizeof(MEMarketUpdate));
+                END_MEASURE(Exchange_McastSocket_send, logger_);
+                outgoing_md_updates_ -> updateReadIndex();
+                TTT_MEASURE(T6_MarketDataPublisher_UDP_write, logger_);
 
                 incremental_socket_.send(&next_inc_seq_num_, sizeof(next_inc_seq_num_));
                 incremental_socket_.send(market_update, sizeof(MEMarketUpdate));
