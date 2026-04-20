@@ -45,6 +45,7 @@ namespace Exchange {
                 const auto next_write = incoming_requests_ -> getNextToWriteTo();
                 *next_write = request_;
                 incoming_requests_ -> updateWriteIndex();
+                TTT_MEASURE(T2_OrderServer_LFQueue_write, (*logger_));
             }
             pending_size_ = 0;
         }

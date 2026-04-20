@@ -24,10 +24,11 @@ namespace Exchange {
         auto start() -> void;
         auto stop()  -> void;
 
-         auto processClientRequest(const MEClientRequest *client_request) const noexcept{
+         auto processClientRequest(const MEClientRequest *client_request) noexcept{
             const auto order_book = ticker_order_book_[client_request -> ticker_id_];
             switch (client_request -> type_) {
                 case ClientRequestType::NEW: {
+                    START_MEASURE(Exchange_MEOrderBoook_add);
                     order_book -> add(
                         client_request -> client_id_,
                         client_request->order_id_,
@@ -35,13 +36,16 @@ namespace Exchange {
                         client_request -> side_,
                         client_request -> price_,
                         client_request -> qty_);
+                    END_MEASURE(Exchange_MEOrderBoook_add, logger_);
                 } break;
 
                 case ClientRequestType::CANCEL: {
+                    START_MEASURE(Exchange_MEOrderBook_cancel);
                     order_book -> cancel(
                         client_request -> client_id_,
                         client_request -> order_id_,
                         client_request -> ticker_id_);
+                    END_MEASURE(Exchange_MEOrderBook_cancel, logger_);
                 } break;
 
                 default: {
@@ -59,16 +63,18 @@ namespace Exchange {
             const auto next_write = outgoing_ogw_responses_ -> getNextToWriteTo();
             *next_write = *client_response;
             outgoing_ogw_responses_ -> updateWriteIndex();
+             TTT_MEASURE(T4t_MatchingEngine_LFQueue_write, logger_);
         }
 
         auto sendMarketUpdate(const MEMarketUpdate *market_update) noexcept {
-            logger_.log("%:% %() % Sending: %. \n",
+             logger_.log("%:% %() % Sending: %. \n",
                 __FILE__, __LINE__, __func__,
                 getCurrentTimeStr( &time_str_ ),
                 market_update -> toString());
-            const auto next_write = outgoing_md_updates_ -> getNextToWriteTo();
-            *next_write = *market_update;
-            outgoing_md_updates_ -> updateWriteIndex();
+             const auto next_write = outgoing_md_updates_ -> getNextToWriteTo();
+             *next_write = *market_update;
+             outgoing_md_updates_ -> updateWriteIndex();
+             TTT_MEASURE(T4_MatchingEngine_LFQueue_write, logger_);
         }
 
         auto run() noexcept {
@@ -77,12 +83,15 @@ namespace Exchange {
 
             while ( run_ ) {
                 if (const auto me_client_request = incoming_requests_ -> getNextToRead()) {
+                    TTT_MEASURE(T3_MatchingEngine_LFQueue_read, logger_);
                     logger_.log("%:% %() % Processing %. \n",
                         __FILE__, __LINE__, __func__,
                         getCurrentTimeStr( &time_str_ ),
                         me_client_request -> toString());
 
+                    START_MEASURE(Exchange_MatchingEngine_processClientRequest);
                     processClientRequest(me_client_request);
+                    END_MEASURE(Exchange_MatchingEngine_processClientRequest, logger_);
                     incoming_requests_ -> updateReadIndex();
                 }
             }

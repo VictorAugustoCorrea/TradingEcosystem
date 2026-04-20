@@ -82,7 +82,9 @@ namespace Exchange {
                 Priority_INVALID
             };
             matching_engine_ -> sendMarketUpdate(&market_update_);
+            START_MEASURE(Exchange_MEOrderBook_removeOrder);
             removeOrder(order);
+            END_MEASURE(Exchange_MEOrderBook_removeOrder, (*logger_));
         }
         else {
             market_update_ = {
@@ -107,7 +109,9 @@ namespace Exchange {
                 if (price < ask_itr -> price_) {
                     break;
                 }
+                START_MEASURE(Exchange_MEOrderBook_match);
                 match(ticker_id, client_id, side, client_order_id, new_market_order_id, ask_itr, &leaves_qty);
+                END_MEASURE(Exchange_MEOrderBook_match, (*logger_));
             }
         }
         if (side == Side::SELL) {
@@ -116,7 +120,9 @@ namespace Exchange {
                 if (price > bid_itr -> price_) {
                     break;
                 }
+                START_MEASURE(Exchange_MEOrderBook_match);
                 match(ticker_id, client_id, side, client_order_id, new_market_order_id, bid_itr, &leaves_qty);
+                END_MEASURE(Exchange_MEOrderBook_match, (*logger_));
             }
         }
         return leaves_qty;
@@ -136,7 +142,10 @@ namespace Exchange {
             qty
         };
         matching_engine_ -> sendClientResponse(&client_response_);
-        if (const auto leaves_qty = checkForMatch(client_id, client_order_id, ticker_id, side, price, qty, new_market_order_id)) {
+        START_MEASURE(Exchange_MEOrderBook_checkForMatch);
+        const auto leaves_qty = checkForMatch(client_id, client_order_id, ticker_id, side, price, qty, new_market_order_id);
+        END_MEASURE(Exchange_MEOrderBook_checkForMatch, (*logger_));
+        if (leaves_qty) {
             const auto priority = getNextPriority(price);
             const auto order = order_pool_.allocate(
                 ticker_id,
@@ -150,7 +159,9 @@ namespace Exchange {
                 nullptr,
                 nullptr
                 );
+            START_MEASURE(Exchange_MEOrderBook_addOrder);
             addOrder(order);
+            END_MEASURE(Exchange_MEOrderBook_addOrder, (*logger_));
 
             market_update_ = {
                 MEMarketUpdateType::ADD,
@@ -206,7 +217,9 @@ namespace Exchange {
                 0,
                 exchange_order -> priority_
             };
+            START_MEASURE(Exchange_MEOrderBook_removeOrder);
             removeOrder(exchange_order);
+            END_MEASURE(Exchange_MEOrderBook_removeOrder, (*logger_));
             matching_engine_ -> sendMarketUpdate(&market_update_);
         }
         matching_engine_ -> sendClientResponse(&client_response_);
