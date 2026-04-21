@@ -50,7 +50,7 @@ namespace Common {
     }
 
     typedef uint32_t Qty;
-    constexpr auto Qty_INVALID = std:: numeric_limits<Qty>::max();
+    constexpr auto Qty_INVALID = std::numeric_limits<Qty>::max();
 
     auto inline qtyToString(const Qty qty) -> std::string {
         if (UNLIKELY(qty == Qty_INVALID)) {
@@ -165,12 +165,12 @@ namespace Common {
     }
 
     /** Resetting because my PC is really weak :( */
-    constexpr size_t ME_MAX_TICKERS = 4;
-    constexpr size_t ME_MAX_NUM_CLIENTS = 16;
-    constexpr size_t ME_MAX_PRICE_LEVELS = 64;
-    constexpr size_t ME_MAX_ORDER_IDS = 4096;
-    constexpr size_t ME_MAX_CLIENT_UPDATES = 512;
-    constexpr size_t ME_MAX_MARKET_UPDATES = 512;
+    constexpr size_t ME_MAX_TICKERS = 2;
+    constexpr size_t ME_MAX_NUM_CLIENTS = 8;
+    constexpr size_t ME_MAX_PRICE_LEVELS = 32;
+    constexpr size_t ME_MAX_ORDER_IDS = 2048;
+    constexpr size_t ME_MAX_CLIENT_UPDATES = 256;
+    constexpr size_t ME_MAX_MARKET_UPDATES = 256;
 
     typedef std::array<TradeEngineCfg, ME_MAX_TICKERS> TradeEngineCfgHashMap;
 }

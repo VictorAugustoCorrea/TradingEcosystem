@@ -8,7 +8,7 @@
 #include "exchange/order_server/client_request.h"
 
 namespace Exchange {
-    constexpr size_t ME_MAX_PENDING_REQUESTS = 1024;
+    constexpr size_t ME_MAX_PENDING_REQUESTS = 512;
 
     class FIFOSequencer {
     public:

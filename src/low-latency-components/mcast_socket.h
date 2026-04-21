@@ -13,7 +13,7 @@
 #include "low-latency-components/logging.h"
 
 namespace Common {
-    constexpr size_t McastBufferSize = 1 * 1024 * 1024;
+    constexpr size_t McastBufferSize = 1 * 512 * 512;
 
     struct McastSocket {
         explicit McastSocket(Logger &logger)

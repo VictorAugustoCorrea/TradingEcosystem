@@ -36,7 +36,9 @@ namespace Trading {
                     market_update -> priority_,
                     nullptr,
                     nullptr);
+                START_MEASURE(Trading_MarketOrderBook_addOrder);
                 addOrder(order);
+                END_MEASURE(Trading_MarketOrderBook_addOrder, (*logger_));
             } break;
 
             case Exchange::MEMarketUpdateType::MODIFY: {
@@ -46,7 +48,9 @@ namespace Trading {
 
             case Exchange::MEMarketUpdateType::CANCEL: {
                 const auto order = oid_to_order_.at(market_update -> order_id_);
+                START_MEASURE(Trading_MarketOrderBook_removeOrder);
                 removeOrder(order);
+                END_MEASURE(Trading_MarketOrderBook_removeOrder,(*logger_));
             } break;
 
             case Exchange::MEMarketUpdateType::TRADE: {
@@ -79,7 +83,9 @@ namespace Trading {
             break;
         }
 
+        START_MEASURE(Trading_MarketOrderBook_updateBBO);
         updateBBO(bid_updated, ask_updated);
+        END_MEASURE(Trading_MarketOrderBook_updateBBO, (*logger_));
 
         logger_->log("%:% %() % % %",
             __FILE__, __LINE__, __func__,
@@ -95,7 +101,7 @@ namespace Trading {
         std::string time_str;
 
         auto printer = [&](std::stringstream &str, const MarketOrdersAtPrice *itr, const Side side, Price &last_price, const bool sanity_check) {
-            char buf[4096];
+            char buf[2048];
             Qty qty = 0;
             size_t num_orders = 0;
 

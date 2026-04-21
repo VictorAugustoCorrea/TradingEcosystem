@@ -3,7 +3,7 @@
 #ifndef TRADINGECOSYSTEM_POSITION_KEEPER_H
 #define TRADINGECOSYSTEM_POSITION_KEEPER_H
 
-#include <strstream>
+#include <sstream>
 #include "market_order_book.h"
 #include "low-latency-components/types.h"
 #include "low-latency-components/logging.h"

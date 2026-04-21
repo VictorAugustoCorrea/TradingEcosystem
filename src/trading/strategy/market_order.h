@@ -108,7 +108,7 @@ namespace Trading {
                 << " [ "
                 << qtyToString(bid_qty_) << "@" << priceToString(bid_price_)
                 << " X "
-                << qtyToString(ask_price_) << "@" << priceToString(ask_qty_)
+                << priceToString(ask_price_) << "@" << qtyToString(ask_qty_)
                 << " ] ";
             return ss.str();
         }

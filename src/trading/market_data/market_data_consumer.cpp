@@ -1,5 +1,5 @@
 #include "market_data_consumer.h"
-#include <strstream>
+#include <sstream>
 #include <utility>
 
 namespace Trading {
@@ -189,7 +189,7 @@ namespace Trading {
         else {
             incremental_queued_msgs_[request -> seq_num_] = request -> me_market_update_;
         }
-        logger_.log("%:% %() % size snapshot: %, incremental: %. \n",
+        logger_.log("%:% %() % size snapshot: %, incremental: % seq: % req: %. \n",
             __FILE__, __LINE__, __func__,
             getCurrentTimeStr(&time_str_),
             snapshot_queued_msgs_.size(),
@@ -200,6 +200,8 @@ namespace Trading {
     }
 
     auto MarketDataConsumer::recvCallback(McastSocket *socket) noexcept -> void {
+        TTT_MEASURE(T7_MarketDataConsumer_UDP_read, logger_);
+        START_MEASURE(Trading_MarketDataConsumer_recvCallBack);
         const auto is_snapshot = socket -> socket_fd_ == snapshot_mcast_socket_.socket_fd_;
         if (UNLIKELY(is_snapshot && !in_recovery_)) {
             socket -> next_rcv_valid_index_ = 0;
@@ -245,10 +247,12 @@ namespace Trading {
                     const auto next_write = incoming_md_updates_ -> getNextToWriteTo();
                     *next_write = request -> me_market_update_;
                     incoming_md_updates_ -> updateWriteIndex();
+                    TTT_MEASURE(T8_MarketDataConsumer_LFQueue_write, logger_);
                 }
             }
             memcpy(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
             socket -> next_rcv_valid_index_ -= i;
         }
+        END_MEASURE(Trading_MarketDataConsumer_recvCallBack, logger_);
     }
 }

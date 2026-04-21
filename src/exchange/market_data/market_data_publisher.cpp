@@ -29,7 +29,7 @@ namespace Exchange {
 
                 TTT_MEASURE(T5_MarketDataPublisher_LFQueue_read, logger_);
 
-                logger_.log("%:% %() % Sending seq: %. \n",
+                logger_.log("%:% %() % Sending seq: % %. \n",
                     __FILE__, __LINE__, __func__,
                     getCurrentTimeStr(&time_str_),
                     next_inc_seq_num_,
@@ -41,10 +41,6 @@ namespace Exchange {
                 END_MEASURE(Exchange_McastSocket_send, logger_);
                 outgoing_md_updates_ -> updateReadIndex();
                 TTT_MEASURE(T6_MarketDataPublisher_UDP_write, logger_);
-
-                incremental_socket_.send(&next_inc_seq_num_, sizeof(next_inc_seq_num_));
-                incremental_socket_.send(market_update, sizeof(MEMarketUpdate));
-                outgoing_md_updates_ -> updateReadIndex();
                 const auto next_write = snapshot_md_updates_.getNextToWriteTo();
                 next_write -> seq_num_ = next_inc_seq_num_;
                 next_write -> me_market_update_ = *market_update;

@@ -73,7 +73,7 @@ namespace Trading {
         }
 
         auto silentSeconds() const {
-            return getCurrentNanos() - last_event_time_ / NANOS_TO_SECS;
+            return (getCurrentNanos() - last_event_time_) / NANOS_TO_SECS;
         }
 
         auto clientId() const {

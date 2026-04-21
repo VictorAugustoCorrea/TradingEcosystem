@@ -178,7 +178,7 @@ namespace Common
         int epoll_fd_ = -1;
         TCPSocket listener_socket_;
 
-        epoll_event events_[1024]{};
+        epoll_event events_[512]{};
 
         std::vector<TCPSocket *> receive_sockets_;
         std::vector<TCPSocket *> send_sockets_;

@@ -1,5 +1,6 @@
 #include "order_gateway.h"
 
+#include <cmath>
 #include <utility>
 
 namespace Trading {
@@ -28,21 +29,27 @@ namespace Trading {
         while (run_) {
             tcp_socket_.sendAndRecv();
             for (auto client_request = outgoing_requests_ -> getNextToRead(); client_request; client_request = outgoing_requests_ -> getNextToRead()) {
+                TTT_MEASURE(T11_OrderGateway_LFQueue_read, logger_);
                 logger_.log("%:% %() % Sending client id: %, seq: % %.\n",
                     __FILE__, __LINE__, __func__,
                     getCurrentTimeStr(&time_str_),
                     client_id_,
                     next_outgoing_seq_num_,
                     client_request -> toString());
+                START_MEASURE(Trading_TCPSocket_send);
                 tcp_socket_.send(&next_outgoing_seq_num_, sizeof(next_outgoing_seq_num_));
                 tcp_socket_.send(client_request, sizeof(Exchange::MEClientRequest));
+                END_MEASURE(Trading_TCPSocket_send, logger_);
                 outgoing_requests_ -> updateReadIndex();
+                TTT_MEASURE(T12_OrderGateway_TCP_write, logger_);
                 next_outgoing_seq_num_++;
             }
         }
 
     }
     auto OrderGateway::recvCallback(TCPSocket *socket, const Nanos rx_time) noexcept -> void {
+        TTT_MEASURE(T7_OrderGateway_TCP_read, logger_);
+        START_MEASURE(Trading_OrderGateway_recvCallBack);
         logger_.log("%:% %() % Received Socket: %, len: % %.\n",
             __FILE__, __LINE__, __func__,
             getCurrentTimeStr(&time_str_),
@@ -82,9 +89,11 @@ namespace Trading {
                 const auto next_write = incoming_responses_ -> getNextToWriteTo();
                 *next_write = response -> me_client_response_;
                 incoming_responses_ -> updateWriteIndex();
+                TTT_MEASURE(T8t_OrderGateway_LFQueue_write, logger_);
             }
             memcpy(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
             socket -> next_rcv_valid_index_ -= i;
         }
+        END_MEASURE(Trading_OrderGateway_recvCallBack, logger_);
     }
 }

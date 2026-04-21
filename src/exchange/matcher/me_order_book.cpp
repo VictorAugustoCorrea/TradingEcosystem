@@ -230,7 +230,7 @@ namespace Exchange {
         std::string time_str;
 
         auto printer = [&](std::stringstream &str, const MEOrdersAtPrice *itr, const Side side, Price &last_price, const bool sanity_check) {
-            char buf[4096];
+            char buf[2048];
             Qty qty = 0;
             size_t num_orders = 0;
 

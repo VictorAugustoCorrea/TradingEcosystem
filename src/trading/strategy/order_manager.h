@@ -3,6 +3,7 @@
 #ifndef TRADINGECOSYSTEM_ORDER_MANAGER_H
 #define TRADINGECOSYSTEM_ORDER_MANAGER_H
 
+#include <cmath>
 #include "om_order.h"
 #include "risk_manager.h"
 #include "low-latency-components/logging.h"
@@ -27,16 +28,25 @@ namespace Trading {
         auto moveOrder(OMOrder *order, const TickerId ticker_id, const Price price, const Side side, const Qty qty) noexcept {
             switch (order -> order_state_) {
                 case OMOrderState::LIVE: {
-                    if (order -> price_ != price || order -> qty_ != qty)
+                    if (order -> price_ != price || order -> qty_ != qty) {
+                        START_MEASURE(Trading_OrderManager_cancelOrder);
                         cancelOrder(order);
+                        END_MEASURE(Trading_OrderManager_cancelOrder, (*logger_));
+                    }
                 } break;
 
                 case OMOrderState::INVALID:
 
                 case OMOrderState::DEAD: {
                     if (price != Price_INVALID) {
-                        if (const auto risk_result = risk_manager_.checkPreTradeRisk(ticker_id, side, qty); risk_result == RiskCheckResult::ALLOWED)
+                        START_MEASURE(Trading_RiskManager_checkPreTrade);
+                        const auto risk_result = risk_manager_.checkPreTradeRisk(ticker_id, side, qty);
+                        END_MEASURE(Trading_RiskManager_checkPreTrade, (*logger_));
+                        if (risk_result == RiskCheckResult::ALLOWED){
+                            START_MEASURE(Trading_OrderManager_newOrder);
                             newOrder(order, ticker_id, price, side, qty);
+                            END_MEASURE(Trading_OrderManager_newOrder, (*logger_));
+                        }
                         else
                             logger_ -> log("%:% %() % Ticker:  %, Side: %, Qty: %, RiskCheckResult: %. \n",
                                 __FILE__, __LINE__, __func__,
@@ -56,10 +66,14 @@ namespace Trading {
 
         auto moveOrders(const TickerId ticker_id, const Price bid_price, const Price ask_price, const Qty clip) noexcept {
             const auto bid_order = &ticker_side_order_.at(ticker_id).at(sideToIndex(Side::BUY));
+            START_MEASURE(Trading_OrderManager_moveOrders);
             moveOrder(bid_order, ticker_id, bid_price, Side::BUY, clip);
+            END_MEASURE(Trading_OrderManager_moveOrders, (*logger_));
 
             const auto ask_order = &ticker_side_order_.at(ticker_id).at(sideToIndex(Side::SELL));
+            START_MEASURE(Trading_OrderManager_moveOrders_);
             moveOrder(ask_order, ticker_id, ask_price, Side::SELL, clip);
+            END_MEASURE(Trading_OrderManager_moveOrders_, (*logger_));
         }
 
         auto onOrderUpdate(const Exchange::MEClientResponse *client_response) noexcept -> void {

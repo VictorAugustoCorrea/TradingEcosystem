@@ -3,7 +3,7 @@
 #ifndef TRADINGECOSYSTEM_MACROS_H
 #define TRADINGECOSYSTEM_MACROS_H
 
-#define LIKELY  (x) __builtin_expect(!!(x), 1)
+#define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 
 #include <iostream>

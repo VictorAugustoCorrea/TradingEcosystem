@@ -14,7 +14,7 @@
 
 namespace Common
 {
-    constexpr size_t TCPBufferSize = 1 * 1024 * 1024;
+    constexpr size_t TCPBufferSize = 1 * 512 * 512;
 
     struct TCPSocket
     {
