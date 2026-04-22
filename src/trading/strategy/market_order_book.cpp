@@ -28,6 +28,14 @@ namespace Trading {
 
         switch (market_update -> type_) {
             case Exchange::MEMarketUpdateType::ADD: {
+                if (UNLIKELY(market_update -> order_id_ >= oid_to_order_.size())) {
+                    logger_->log("%:% %() % WARN invalid order_id in ADD. id: %, max: %.\n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        market_update -> order_id_,
+                        oid_to_order_.size() - 1);
+                    break;
+                }
                 const auto order = order_pool_.allocate(
                     market_update -> order_id_,
                     market_update -> side_,
@@ -42,12 +50,32 @@ namespace Trading {
             } break;
 
             case Exchange::MEMarketUpdateType::MODIFY: {
+                if (UNLIKELY(market_update -> order_id_ >= oid_to_order_.size())) {
+                    logger_->log("%:% %() % WARN invalid order_id in MODIFY. id: %, max: %.\n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        market_update -> order_id_,
+                        oid_to_order_.size() - 1);
+                    break;
+                }
                 const auto order = oid_to_order_.at(market_update -> order_id_);
+                if (UNLIKELY(order == nullptr))
+                    break;
                 order -> qty_ = market_update -> qty_;
             } break;
 
             case Exchange::MEMarketUpdateType::CANCEL: {
+                if (UNLIKELY(market_update -> order_id_ >= oid_to_order_.size())) {
+                    logger_->log("%:% %() % WARN invalid order_id in CANCEL. id: %, max: %.\n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        market_update -> order_id_,
+                        oid_to_order_.size() - 1);
+                    break;
+                }
                 const auto order = oid_to_order_.at(market_update -> order_id_);
+                if (UNLIKELY(order == nullptr))
+                    break;
                 START_MEASURE(Trading_MarketOrderBook_removeOrder);
                 removeOrder(order);
                 END_MEASURE(Trading_MarketOrderBook_removeOrder,(*logger_));

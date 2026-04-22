@@ -150,14 +150,18 @@ namespace Common
 
         int socket_fd = -1;
         constexpr int one = 1;
+        int last_errno = 0;
 
         for (const addrinfo *rp = result; rp; rp = rp->ai_next) {
 
             socket_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-            if (socket_fd == -1)
+            if (socket_fd == -1) {
+                last_errno = errno;
                 continue;
+            }
 
             if (!setNonBlocking(socket_fd)) {
+                last_errno = errno;
                 close(socket_fd);
                 socket_fd = -1;
                 continue;
@@ -165,15 +169,30 @@ namespace Common
 
             if (!socket_cfg.is_udp_) {
                 if (!disableNagle(socket_fd)) {
+                    last_errno = errno;
                     close(socket_fd);
                     socket_fd = -1;
                     continue;
                 }
             }
 
+            if (socket_cfg.is_udp_ && !socket_cfg.is_listening_ && !socket_cfg.iface_.empty()) {
+                in_addr mcast_iface{};
+                const auto iface_ip = getIfaceIP(socket_cfg.iface_);
+                if (!iface_ip.empty() && inet_pton(AF_INET, iface_ip.c_str(), &mcast_iface) == 1) {
+                    if (setsockopt(socket_fd, IPPROTO_IP, IP_MULTICAST_IF, &mcast_iface, sizeof(mcast_iface)) != 0) {
+                        last_errno = errno;
+                        close(socket_fd);
+                        socket_fd = -1;
+                        continue;
+                    }
+                }
+            }
+
             if (!socket_cfg.is_listening_) {
                 if (connect(socket_fd, rp->ai_addr, rp->ai_addrlen) == -1) {
                     if (errno != EINPROGRESS) {
+                        last_errno = errno;
                         close(socket_fd);
                         socket_fd = -1;
                         continue;
@@ -183,6 +202,7 @@ namespace Common
 
             if (socket_cfg.is_listening_) {
                 if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) != 0) {
+                    last_errno = errno;
                     close(socket_fd);
                     socket_fd = -1;
                     continue;
@@ -204,6 +224,7 @@ namespace Common
                     : rp->ai_addrlen;
 
                 if (bind(socket_fd, bind_addr, bind_len) != 0) {
+                    last_errno = errno;
                     close(socket_fd);
                     socket_fd = -1;
                     continue;
@@ -212,6 +233,7 @@ namespace Common
 
             if (!socket_cfg.is_udp_ && socket_cfg.is_listening_) {
                 if (listen(socket_fd, MaxTCPServerBacklog) != 0) {
+                    last_errno = errno;
                     close(socket_fd);
                     socket_fd = -1;
                     continue;
@@ -220,6 +242,7 @@ namespace Common
 
             if (socket_cfg.needs_so_timestamp_) {
                 if (!setSOTimestamp(socket_fd)) {
+                    last_errno = errno;
                     close(socket_fd);
                     socket_fd = -1;
                     continue;
@@ -230,6 +253,10 @@ namespace Common
         }
 
         freeaddrinfo(result);
+
+        if (socket_fd == -1) {
+            errno = last_errno != 0 ? last_errno : EINVAL;
+        }
 
         return socket_fd;
     }

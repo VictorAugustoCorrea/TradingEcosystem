@@ -23,21 +23,25 @@ namespace Exchange {
 
         auto start() -> void {
             run_ = true;
-            ASSERT(createAndStartThread(-1, "Exchange/MarketDataPublisher", [this] { run(); }) != nullptr,
+            thread_ = createAndStartThread(-1, "Exchange/MarketDataPublisher", [this] { run(); });
+            ASSERT(thread_ != nullptr && thread_->joinable(),
                 "Failed to start MarketData thread.");
             snapshot_synthesizer_ -> start();
         }
 
         auto stop() -> void {
             run_ = false;
+            if (thread_) {
+                if (thread_->joinable())
+                    thread_->join();
+                delete thread_;
+                thread_ = nullptr;
+            }
             snapshot_synthesizer_ -> stop();
         }
 
         ~MarketDataPublisher() {
             stop();
-
-            using namespace std::literals::chrono_literals;
-            std::this_thread::sleep_for(5s);
             delete snapshot_synthesizer_;
             snapshot_synthesizer_ = nullptr;
         }
@@ -53,6 +57,7 @@ namespace Exchange {
         MEMarketUpdateLFQueue *outgoing_md_updates_ = nullptr;
         MDPMarketUpdateLFQueue snapshot_md_updates_;
         volatile bool run_ = false;
+        std::thread *thread_ = nullptr;
         std::string time_str_;
         Logger logger_;
         McastSocket incremental_socket_;

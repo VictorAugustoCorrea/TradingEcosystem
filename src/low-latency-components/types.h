@@ -168,7 +168,7 @@ namespace Common {
     constexpr size_t ME_MAX_TICKERS = 2;
     constexpr size_t ME_MAX_NUM_CLIENTS = 8;
     constexpr size_t ME_MAX_PRICE_LEVELS = 32;
-    constexpr size_t ME_MAX_ORDER_IDS = 2048;
+    constexpr size_t ME_MAX_ORDER_IDS = 8192;
     constexpr size_t ME_MAX_CLIENT_UPDATES = 256;
     constexpr size_t ME_MAX_MARKET_UPDATES = 256;
 

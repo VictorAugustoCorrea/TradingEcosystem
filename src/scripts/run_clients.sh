@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -16,18 +16,41 @@ fi
 echo "Using binary: $BIN"
 echo "Starting clients..."
 
+# Start dedicated exchange process first.
+"$BIN" --exchange-only &
+EXCHANGE_PID=$!
+CLIENT_PIDS=()
+
+cleanup() {
+    # shellcheck disable=SC2317
+    kill -TERM "$EXCHANGE_PID" 2>/dev/null || true
+    # shellcheck disable=SC2317
+    for _ in {1..20}; do
+        if ! kill -0 "$EXCHANGE_PID" 2>/dev/null; then
+            break
+        fi
+        sleep 0.1
+    done
+
+    # shellcheck disable=SC2317
+    if kill -0 "$EXCHANGE_PID" 2>/dev/null; then
+        kill -KILL "$EXCHANGE_PID" 2>/dev/null || true
+    fi
+
+    # shellcheck disable=SC2317
+    wait "$EXCHANGE_PID" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+sleep 5
+
 # ========================
-# CLIENT 1 - MAKER  (+exchange)
+# CLIENT 1 - MAKER (network)
 # ========================
-"$BIN" --exchange 1 MAKER \
+"$BIN" 1 MAKER \
     100 0.6 150 300 -100 \
-    60 0.6 150 300 -100 \
-    150 0.5 250 600 -100 \
-    200 0.4 500 3000 -100 \
-    1000 0.9 5000 4000 -100 \
-    300 0.8 1500 3000 -100 \
-    50 0.7 150 300 -100 \
-    100 0.3 250 300 -100 &
+    60 0.6 150 300 -100 &
+CLIENT_PIDS+=($!)
 
 sleep 5
 
@@ -36,13 +59,8 @@ sleep 5
 # ========================
 "$BIN" 2 MAKER \
     2100 0.4 2150 2300 -1100 \
-    260 0.8 2150 2300 -1100 \
-    2150 0.2 2250 2600 -1100 \
-    2200 0.6 2500 23000 -1100 \
-    210 0.6 2500 24000 -1100 \
-    2300 0.5 21500 23000 -1100 \
-    250 0.8 2150 2300 -1100 \
-    2100 0.3 2250 2300 -1100 &
+    260 0.8 2150 2300 -1100 &
+CLIENT_PIDS+=($!)
 
 sleep 2
 
@@ -51,13 +69,8 @@ sleep 2
 # ========================
 "$BIN" 3 TAKER \
     300 0.8 350 300 -300 \
-    60 0.7 350 300 -300 \
-    350 0.5 250 600 -300 \
-    200 0.6 500 3000 -300 \
-    3000 0.5 5000 4000 -300 \
-    300 0.7 3500 3000 -300 \
-    50 0.3 350 300 -300 \
-    300 0.8 350 300 -300 &
+    60 0.7 350 300 -300 &
+CLIENT_PIDS+=($!)
 
 sleep 2
 
@@ -66,13 +79,8 @@ sleep 2
 # ========================
 "$BIN" 4 TAKER \
     4100 0.8 4150 4300 -1100 \
-    460 0.9 4150 4300 -1100 \
-    4150 0.4 4450 4600 -1100 \
-    4400 0.4 4500 43000 -1100 \
-    410 0.6 4500 44000 -1100 \
-    4300 0.6 41500 43000 -1100 \
-    450 0.6 4150 4300 -1100 \
-    4100 0.9 4450 4300 -1100 &
+    460 0.9 4150 4300 -1100 &
+CLIENT_PIDS+=($!)
 
 sleep 2
 
@@ -80,7 +88,13 @@ sleep 2
 # CLIENT 5 - RANDOM  (rede)
 # ========================
 "$BIN" 5 RANDOM &
-
-wait
+CLIENT_PIDS+=($!)
+FAIL=0
+for pid in "${CLIENT_PIDS[@]}"; do
+    if ! wait "$pid"; then
+        FAIL=1
+    fi
+done
 
 echo "All clients finished."
+exit "$FAIL"

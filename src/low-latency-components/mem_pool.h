@@ -70,7 +70,7 @@ namespace Common
                 }
                 if (UNLIKELY(initial_free_index == next_free_index_))
                 {
-                    ASSERT(initial_free_index != next_free_index_, "Memory Pool out of space.");
+                    FATAL("Memory Pool out of space.");
                 }
             }
         }

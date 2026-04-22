@@ -119,6 +119,8 @@ namespace Common
 
         auto send(const void *data, const size_t len) noexcept -> void
         {
+            ASSERT(next_send_valid_index_ + len <= TCPBufferSize,
+                   "TCP socket buffer filled up and sendAndRecv() not called.");
             memcpy(outbound_data_.data() + next_send_valid_index_, data, len);
             next_send_valid_index_ += len;
         }

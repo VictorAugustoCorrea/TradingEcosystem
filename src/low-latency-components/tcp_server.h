@@ -28,10 +28,12 @@ namespace Common
             ASSERT(epoll_fd_ >= 0,
                    "epoll_create() failed error:" + std::string(std::strerror(errno)));
 
-            ASSERT(listener_socket_.connect("", iface, port, true) >= 0,
+            const int listen_connect_rc = listener_socket_.connect("", iface, port, true);
+            const int listen_connect_errno = errno;
+            ASSERT(listen_connect_rc >= 0,
                    "Listener socket failed to connect. iface:" + iface +
                    " port:" + std::to_string(port) +
-                   " error:" + std::string(std::strerror(errno)));
+                   " error:" + std::string(std::strerror(listen_connect_errno)));
 
             ASSERT(addToEpollList(&listener_socket_),
                    "epoll_ctl() failed. error:" + std::string(std::strerror(errno)));

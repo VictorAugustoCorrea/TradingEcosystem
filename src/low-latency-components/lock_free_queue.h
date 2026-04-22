@@ -20,6 +20,8 @@ namespace Common
         }
         auto updateWriteIndex() noexcept
         {
+            ASSERT(num_elements_.load() < store_.size(),
+                   "Queue full before updateWriteIndex().");
             next_write_index_ = (next_write_index_ + 1) % store_.size();
             ++num_elements_;
         }

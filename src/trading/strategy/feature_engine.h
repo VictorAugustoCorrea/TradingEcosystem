@@ -36,7 +36,7 @@ namespace Trading {
                 agg_trade_qty_ratio_ = static_cast<double> (market_update -> qty_) / (market_update -> side_ == Side::BUY ? bbo -> ask_qty_ : bbo -> bid_qty_);
             }
 
-            logger_ -> log("%:% %() % mkt price: %, agg-trade-ratio: %. \n",
+            logger_ -> log("%:% %() % update: %, mkt price: %, agg-trade-ratio: %. \n",
                 __FILE__, __LINE__, __func__,
                 getCurrentTimeStr(&time_str_),
                 market_update -> toString().c_str(),

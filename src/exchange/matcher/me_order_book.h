@@ -166,7 +166,10 @@ namespace Exchange {
                 order -> next_order_ = first_order;
                 first_order -> prev_order_ = order;
             }
-            cid_oid_to_order_.at(order -> client_id_).at(order -> client_order_id_) = order;
+            if (LIKELY(order -> client_id_ < cid_oid_to_order_.size() &&
+                       order -> client_order_id_ < cid_oid_to_order_.at(order -> client_id_).size())) {
+                cid_oid_to_order_.at(order -> client_id_).at(order -> client_order_id_) = order;
+            }
         }
 
         auto removeOrder(MEOrder *order) noexcept {
@@ -187,7 +190,10 @@ namespace Exchange {
 
                 order -> prev_order_ = order -> next_order_ = nullptr;
             }
-            cid_oid_to_order_.at(order -> client_id_).at(order -> client_order_id_) = nullptr;
+            if (LIKELY(order -> client_id_ < cid_oid_to_order_.size() &&
+                       order -> client_order_id_ < cid_oid_to_order_.at(order -> client_id_).size())) {
+                cid_oid_to_order_.at(order -> client_id_).at(order -> client_order_id_) = nullptr;
+            }
             order_pool_.deallocate(order);
         }
     };

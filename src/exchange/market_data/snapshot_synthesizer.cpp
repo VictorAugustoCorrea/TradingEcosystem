@@ -10,21 +10,47 @@ namespace Exchange {
     snapshot_socket_(logger_),
     order_pool_(ME_MAX_ORDER_IDS),
     snapshot_md_updates_(market_updates) {
-        ASSERT(snapshot_socket_.init(snapshot_ip, iface, snapshot_port, false) >= 0,
-            "Unable to create snapshot mcast socket. error: " + std::string(strerror(errno)));
+        const int snap_init_rc = snapshot_socket_.init(snapshot_ip, iface, snapshot_port, false);
+        const int snap_errno = errno;
+        ASSERT(snap_init_rc >= 0,
+            "Unable to create snapshot mcast socket. error: " + std::string(strerror(snap_errno)));
     }
 
     auto SnapshotSynthesizer::addToSnapshot(const MDPMarketUpdate *market_update) {
         const auto &me_market_update = market_update -> me_market_update_;
+        if (UNLIKELY(me_market_update.ticker_id_ >= ticker_orders_.size())) {
+            logger_.log("%:% %() % WARN invalid ticker_id in snapshot update: %.\n",
+                __FILE__, __LINE__, __func__,
+                getCurrentTimeStr(&time_str_),
+                me_market_update.toString());
+            return;
+        }
+
         auto *orders = &ticker_orders_.at(me_market_update.ticker_id_);
         switch (me_market_update.type_) {
             case MEMarketUpdateType::ADD: {
+                if (UNLIKELY(me_market_update.order_id_ >= orders->size())) {
+                    logger_.log("%:% %() % WARN invalid order_id in snapshot ADD. id: %, max: %.\n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        me_market_update.order_id_,
+                        orders->size() - 1);
+                    break;
+                }
                 const auto order = orders -> at(me_market_update.order_id_);
                 ASSERT(order == nullptr, "Received: " + me_market_update.toString() + " but order already existis: " + (order? order -> toString() : " "));
                 orders -> at(me_market_update.order_id_) = order_pool_.allocate(me_market_update);
             } break;
 
             case MEMarketUpdateType::MODIFY: {
+                if (UNLIKELY(me_market_update.order_id_ >= orders->size())) {
+                    logger_.log("%:% %() % WARN invalid order_id in snapshot MODIFY. id: %, max: %.\n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        me_market_update.order_id_,
+                        orders->size() - 1);
+                    break;
+                }
                 const auto order = orders -> at(me_market_update.order_id_);
                 ASSERT(order != nullptr, "Received: " + me_market_update.toString() + " but order does not exist.");
                 ASSERT(order -> order_id_ == me_market_update.order_id_, "Expecting existing order to match new onde.");
@@ -34,6 +60,14 @@ namespace Exchange {
             } break;
 
             case MEMarketUpdateType::CANCEL: {
+                if (UNLIKELY(me_market_update.order_id_ >= orders->size())) {
+                    logger_.log("%:% %() % WARN invalid order_id in snapshot CANCEL. id: %, max: %.\n",
+                        __FILE__, __LINE__, __func__,
+                        getCurrentTimeStr(&time_str_),
+                        me_market_update.order_id_,
+                        orders->size() - 1);
+                    break;
+                }
                 const auto order = orders -> at(me_market_update.order_id_);
                 ASSERT(order != nullptr, "Received: " + me_market_update.toString() + " but order does not exist.");
                 ASSERT(order -> order_id_ == me_market_update.order_id_, "Expecting existing order to match new one.");
@@ -131,12 +165,18 @@ namespace Exchange {
 
     auto SnapshotSynthesizer::start() -> void {
         run_ = true;
-        ASSERT(createAndStartThread(-1, "Exchange/SnapshotSynthesizer", [this]{ run(); } ) != nullptr,
+        thread_ = createAndStartThread(-1, "Exchange/SnapshotSynthesizer", [this]{ run(); } );
+        ASSERT(thread_ != nullptr && thread_->joinable(),
             "Failed to start SnapshotSynthesizer thread.");
     }
 
     auto SnapshotSynthesizer::stop() -> void {
         run_ = false;
+        if (thread_) {
+            if (thread_->joinable())
+                thread_->join();
+            delete thread_;
+            thread_ = nullptr;
+        }
     }
 }
-

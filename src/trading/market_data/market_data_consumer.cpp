@@ -24,8 +24,10 @@ namespace Trading {
         };
 
         incremental_mcast_socket_.recv_callback_ = recv_callback;
-        ASSERT(incremental_mcast_socket_.init(incremental_ip, iface, incremental_port, true) >= 0,
-            "Unable to create incremental mcast socket. Error: " + std::string(strerror(errno)));
+        const int inc_init_rc = incremental_mcast_socket_.init(incremental_ip, iface, incremental_port, true);
+        const int inc_errno = errno;
+        ASSERT(inc_init_rc >= 0,
+            "Unable to create incremental mcast socket. Error: " + std::string(strerror(inc_errno)));
 
         ASSERT(incremental_mcast_socket_.join(incremental_ip),
             "Join failed on: " + std::to_string(incremental_mcast_socket_.socket_fd_) + " error: " + std::string(strerror(errno)));
@@ -45,8 +47,10 @@ namespace Trading {
         snapshot_queued_msgs_.clear();
         incremental_queued_msgs_.clear();
 
-        ASSERT(snapshot_mcast_socket_.init(snapshot_ip_, iface_, snapshot_port_, true) >= 0,
-            "Unable to create snapshot mcast socket. Error: " + std::string(std::strerror(errno)));
+        const int snap_init_rc = snapshot_mcast_socket_.init(snapshot_ip_, iface_, snapshot_port_, true);
+        const int snap_errno = errno;
+        ASSERT(snap_init_rc >= 0,
+            "Unable to create snapshot mcast socket. Error: " + std::string(std::strerror(snap_errno)));
 
         ASSERT(snapshot_mcast_socket_.join(snapshot_ip_),
             "Join failed on: " + std::to_string(snapshot_mcast_socket_.socket_fd_) + " error: " + std::string(strerror(errno)));
@@ -78,7 +82,7 @@ namespace Trading {
                 snd.toString());
             if (fst != next_snapshot_seq) {
                 have_complete_snapshot = false;
-                logger_.log("%:% %() % Detected gap in snapshot stream. Expected: %, found: %.\n",
+                logger_.log("%:% %() % Detected gap in snapshot stream. Expected: %, found: % (%).\n",
                     __FILE__, __LINE__, __func__,
                     getCurrentTimeStr(&time_str_),
                     next_snapshot_seq,
@@ -94,7 +98,7 @@ namespace Trading {
         }
 
         if (!have_complete_snapshot) {
-            logger_.log("%:% %() % % Returning because found gaps in snapshot stream. \n",
+            logger_.log("%:% %() % Returning because found gaps in snapshot stream. \n",
                 __FILE__, __LINE__, __func__,
                 getCurrentTimeStr(&time_str_));
             snapshot_queued_msgs_.clear();
@@ -215,7 +219,7 @@ namespace Trading {
             size_t i = 0;
             for ( ; i + sizeof(Exchange::MDPMarketUpdate) <= socket -> next_rcv_valid_index_; i += sizeof(Exchange::MDPMarketUpdate)) {
                 const auto request = reinterpret_cast<const Exchange::MDPMarketUpdate *> (socket -> inbound_data_.data() + i);
-                logger_.log("%:% %() % Received: % . Socket len: %, \n",
+                logger_.log("%:% %() % Received: % . Socket len: %, req: %.\n",
                     __FILE__, __LINE__, __func__,
                     getCurrentTimeStr(&time_str_),
                     is_snapshot ? "snapshot" : "incremental",
@@ -250,7 +254,7 @@ namespace Trading {
                     TTT_MEASURE(T8_MarketDataConsumer_LFQueue_write, logger_);
                 }
             }
-            memcpy(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
+            memmove(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
             socket -> next_rcv_valid_index_ -= i;
         }
         END_MEASURE(Trading_MarketDataConsumer_recvCallBack, logger_);

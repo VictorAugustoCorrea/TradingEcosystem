@@ -33,6 +33,7 @@ namespace Exchange {
         Logger logger_;
         std::string time_str_;
         volatile bool run_ = false;
+        std::thread *thread_ = nullptr;
         McastSocket snapshot_socket_;
         size_t last_inc_seq_num_ = 0;
         Nanos last_snapshot_time_ = 0;

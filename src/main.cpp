@@ -19,20 +19,13 @@ static Logger*                      exchange_logger  = nullptr;
 static Logger*                      trading_logger   = nullptr;
 static App::ExchangeApplication*    exchange_app     = nullptr;
 static App::TradeClientApplication* trade_client_app = nullptr;
+static volatile std::sig_atomic_t   stop_requested   = 0;
 
 /** ------------------------------------------------------------------ *
  *  Signal handler — graceful shutdown on Ctrl-C
  * ------------------------------------------------------------------ */
 static void signal_handler(int) {
-    std::this_thread::sleep_for(2s);
-
-    delete trade_client_app; trade_client_app = nullptr;
-    delete exchange_app;     exchange_app     = nullptr;
-    delete trading_logger;   trading_logger   = nullptr;
-    delete exchange_logger;  exchange_logger  = nullptr;
-
-    std::this_thread::sleep_for(2s);
-    exit(EXIT_SUCCESS);
+    stop_requested = 1;
 }
 
 /** ------------------------------------------------------------------ *
@@ -43,6 +36,12 @@ static TradeEngineCfgHashMap parseTickers(const int argc, char** argv, const int
     size_t ticker_id = 0;
 
     for (int i = start_idx; i + 4 < argc; i += 5, ++ticker_id) {
+        if (ticker_id >= ME_MAX_TICKERS) {
+            std::cerr << "Too many ticker configs. Max supported is " << ME_MAX_TICKERS
+                      << ", ignoring extra arguments.\n";
+            break;
+        }
+
         cfg[ticker_id] = {
             static_cast<Qty>(strtol(argv[i],     nullptr, 10)),
             std::strtod(argv[i + 1], nullptr),
@@ -60,13 +59,16 @@ static TradeEngineCfgHashMap parseTickers(const int argc, char** argv, const int
 /** ------------------------------------------------------------------ *
  *  main
  *
- *  With exchange:    <binary> --exchange <client_id> <algo_type> [ticker params...]
+ *  Exchange + local client:
+ *                    <binary> --exchange <client_id> <algo_type> [ticker params...]
+ *  Exchange only:    <binary> --exchange-only
  *  Client only:      <binary>            <client_id> <algo_type> [ticker params...]
  * ------------------------------------------------------------------ */
 int main(const int argc, char** argv) {
 
-    if (argc < 3) {
+    if (argc < 2) {
         std::cerr << "Usage: [--exchange] <client_id> <algo_type> [ticker params (5 each)...]\n";
+        std::cerr << "   or: --exchange-only\n";
         return EXIT_FAILURE;
     }
 
@@ -75,8 +77,12 @@ int main(const int argc, char** argv) {
     /** Detect --exchange flag */
     int  arg_offset     = 1;
     bool start_exchange = false;
+    bool exchange_only  = false;
 
-    if (std::string(argv[1]) == "--exchange") {
+    if (std::string(argv[1]) == "--exchange-only") {
+        exchange_only = true;
+        start_exchange = true;
+    } else if (std::string(argv[1]) == "--exchange") {
         start_exchange = true;
         arg_offset     = 2;
 
@@ -84,17 +90,24 @@ int main(const int argc, char** argv) {
             std::cerr << "Usage: --exchange <client_id> <algo_type> [ticker params (5 each)...]\n";
             return EXIT_FAILURE;
         }
+    } else if (argc < 3) {
+        std::cerr << "Usage: <client_id> <algo_type> [ticker params (5 each)...]\n";
+        return EXIT_FAILURE;
     }
 
-    const auto client_id  = static_cast<ClientId>(strtol(argv[arg_offset], nullptr, 10));
+    const auto client_id  = exchange_only ? ClientId{0} : static_cast<ClientId>(strtol(argv[arg_offset], nullptr, 10));
     srand(client_id);
 
-    const auto algo_type  = stringToAlgoType(argv[arg_offset + 1]);
-    const auto ticker_cfg = parseTickers(argc, argv, arg_offset + 2);
+    const auto algo_type  = exchange_only ? AlgoType::INVALID : stringToAlgoType(argv[arg_offset + 1]);
+    const auto ticker_cfg = exchange_only ? TradeEngineCfgHashMap{} : parseTickers(argc, argv, arg_offset + 2);
 
     /** Loggers */
-    exchange_logger = new Logger("exchange_main.log");
-    trading_logger  = new Logger("trading_main_" + std::to_string(client_id) + ".log");
+    if (start_exchange) {
+        exchange_logger = new Logger("exchange_main.log");
+    }
+    if (!exchange_only) {
+        trading_logger  = new Logger("trading_main_" + std::to_string(client_id) + ".log");
+    }
 
     /**
      * Every process needs its own queues:
@@ -113,6 +126,16 @@ int main(const int argc, char** argv) {
             &client_requests, &client_responses, &market_updates,
             exchange_logger);
         exchange_app->start();
+    }
+
+    if (exchange_only) {
+        while (!stop_requested) {
+            std::this_thread::sleep_for(1s);
+        }
+
+        delete exchange_app;     exchange_app     = nullptr;
+        delete exchange_logger;  exchange_logger  = nullptr;
+        return EXIT_SUCCESS;
     }
 
     /** Start trading client — always receives real queue pointers */

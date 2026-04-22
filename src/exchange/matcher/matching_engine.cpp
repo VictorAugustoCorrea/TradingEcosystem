@@ -17,10 +17,7 @@ namespace Exchange {
     }
 
     MatchingEngine::~MatchingEngine() {
-        run_ = false;
-
-        using namespace std::literals::chrono_literals;
-        std::this_thread::sleep_for(1s);
+        stop();
 
         incoming_requests_ = nullptr;
         outgoing_ogw_responses_ = nullptr;
@@ -34,12 +31,19 @@ namespace Exchange {
 
     auto MatchingEngine::start() -> void {
         run_ = true;
-        ASSERT(createAndStartThread(-1, "Exchange/MatchingEngine", [this]{ run(); }) != nullptr,
+        thread_ = createAndStartThread(-1, "Exchange/MatchingEngine", [this]{ run(); });
+        ASSERT(thread_ != nullptr && thread_->joinable(),
             "Failed to start MatchingEngine thread.");
     }
 
     auto MatchingEngine::stop() -> void {
         run_ = false;
+        if (thread_) {
+            if (thread_->joinable())
+                thread_->join();
+            delete thread_;
+            thread_ = nullptr;
+        }
     }
 
 }

@@ -13,8 +13,10 @@ namespace Exchange {
     snapshot_md_updates_(ME_MAX_MARKET_UPDATES),
     logger_("exchange_market_data_publisher.log"),
     incremental_socket_(logger_) {
-        ASSERT(incremental_socket_.init(incremental_ip, iface, incremental_port, false) >= 0,
-            "Unable to create incremental mcast socket. error: " + std::string(strerror(errno)));
+        const int inc_init_rc = incremental_socket_.init(incremental_ip, iface, incremental_port, false);
+        const int inc_errno = errno;
+        ASSERT(inc_init_rc >= 0,
+            "Unable to create incremental mcast socket. error: " + std::string(strerror(inc_errno)));
         snapshot_synthesizer_ = new SnapshotSynthesizer(&snapshot_md_updates_, iface, snapshot_ip, snapshot_port);
     }
 

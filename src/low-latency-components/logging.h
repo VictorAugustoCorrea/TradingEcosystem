@@ -77,7 +77,7 @@ namespace Common
             file_.open(file_name);
             ASSERT(file_.is_open(), "Could not open log file: " + file_name);
             logger_thread_ = createAndStartThread(-1, "Common/Logger" + file_name_, [this] { flushQueue(); });
-            ASSERT(logger_thread_ != nullptr, "Failed to start Logger Thread.");
+            ASSERT(logger_thread_ != nullptr && logger_thread_->joinable(), "Failed to start Logger Thread.");
         }
 
         ~Logger()
@@ -90,7 +90,12 @@ namespace Common
                 std::this_thread::sleep_for(1s);
             }
             running_ =  false;
-            logger_thread_ -> join();
+            if (logger_thread_) {
+                if (logger_thread_->joinable())
+                    logger_thread_->join();
+                delete logger_thread_;
+                logger_thread_ = nullptr;
+            }
 
             file_.close();
             std::cerr << getCurrentTimeStr(&time_str) << " Logger for " << file_name_ << " exiting." << std::endl;

@@ -53,7 +53,8 @@ namespace Common {
                     getCurrentTimeStr(&time_str_),
                     socket_fd_,
                     next_rcv_valid_index_);
-                recv_callback_(this);
+                if (recv_callback_)
+                    recv_callback_(this);
             }
 
             if (next_send_valid_index_ > 0) {
@@ -72,10 +73,10 @@ namespace Common {
         }
 
         auto send(const void *data, const size_t len) noexcept -> void {
+            ASSERT(next_send_valid_index_ + len <= McastBufferSize,
+                "Mcast socket buffer filled up and sendAndRecv() not called.");
             memcpy(outbound_data_.data() + next_send_valid_index_, data, len);
             next_send_valid_index_ += len;
-            ASSERT(next_send_valid_index_ < McastBufferSize,
-                "Mcast socket buffer filled up and sendAndRecv() not called.");
         }
 
         int socket_fd_ = -1;

@@ -180,8 +180,8 @@ namespace Exchange {
         MEOrder *exchange_order = nullptr;
 
         if (is_cancelable) {
-            const auto &co_itr = cid_oid_to_order_.at(client_id);
-            exchange_order = co_itr.at(order_id);
+            if (const auto &co_itr = cid_oid_to_order_.at(client_id); LIKELY(order_id < co_itr.size()))
+                exchange_order = co_itr.at(order_id);
         }
         if (UNLIKELY(exchange_order == nullptr)) {
             client_response_ = {

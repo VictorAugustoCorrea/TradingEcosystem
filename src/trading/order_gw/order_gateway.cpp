@@ -91,7 +91,7 @@ namespace Trading {
                 incoming_responses_ -> updateWriteIndex();
                 TTT_MEASURE(T8t_OrderGateway_LFQueue_write, logger_);
             }
-            memcpy(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
+            memmove(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
             socket -> next_rcv_valid_index_ -= i;
         }
         END_MEASURE(Trading_OrderGateway_recvCallBack, logger_);

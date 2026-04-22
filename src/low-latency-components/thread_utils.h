@@ -3,8 +3,11 @@
 #ifndef TRADINGECOSYSTEM_THREAD_UTILS_H
 #define TRADINGECOSYSTEM_THREAD_UTILS_H
 
+#include <new>
 #include <thread>
+#include <utility>
 #include <iostream>
+#include <functional>
 
 namespace Common
 {
@@ -27,15 +30,24 @@ namespace Common
     template <typename T, typename... A>
     auto createAndStartThread(const int core_id, const std::string &name, T &&func, A &&... args) noexcept
     {
-        auto t = new std::thread([&] {
-        if (core_id >= 0 && !setThreadCore(core_id)) {
-            std::cerr << "Failed to set core affinity for " << name << " " << pthread_self() << " to " << core_id << std::endl;
-            exit(EXIT_FAILURE);
-         }
-        std::cerr << "Set core affinity for " << name << " " << pthread_self() << " to " << core_id << std::endl;
+        std::thread *t = nullptr;
+        try {
+            t = new(std::nothrow) std::thread(
+                [core_id,
+                 name,
+                 fn = std::forward<T>(func),
+                 ...captured_args = std::forward<A>(args)]() mutable {
+                    if (core_id >= 0 && !setThreadCore(core_id)) {
+                        std::cerr << "Failed to set core affinity for " << name << " " << pthread_self() << " to " << core_id << std::endl;
+                        exit(EXIT_FAILURE);
+                    }
+                    std::cerr << "Set core affinity for " << name << " " << pthread_self() << " to " << core_id << std::endl;
 
-        std::forward<T>(func)((std::forward<A>(args))...);
-        });
+                    std::invoke(std::move(fn), std::move(captured_args)...);
+                });
+        } catch (...) {
+            return static_cast<std::thread *>(nullptr);
+        }
 
         using namespace std::literals::chrono_literals;
         std::this_thread::sleep_for(1s);

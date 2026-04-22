@@ -18,7 +18,7 @@ namespace Exchange {
         auto stop()  -> void;
 
         auto run() noexcept {
-            logger_.log("%:% %() % %.\n",
+            logger_.log("%:% %() %.\n",
                 __FILE__, __LINE__, __func__,
                 getCurrentTimeStr(&time_str_));
 
@@ -97,7 +97,7 @@ namespace Exchange {
                     END_MEASURE(Exchange_FIFOSequencer_addClientRequest, logger_);
                 }
 
-                memcpy(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
+                memmove(socket -> inbound_data_.data(), socket -> inbound_data_.data() + i, socket -> next_rcv_valid_index_ - i);
                 socket -> next_rcv_valid_index_ -= i;
             }
         }
@@ -121,6 +121,7 @@ namespace Exchange {
         std::string time_str_;
         const std::string iface_;
         volatile bool run_ =  false;
+        std::thread *thread_ = nullptr;
         FIFOSequencer fifo_sequencer_;
         MEClientResponseLFQueue * outgoing_responses_ = nullptr;
         std::array<size_t, ME_MAX_NUM_CLIENTS> cid_next_exp_seq_num_ = {};

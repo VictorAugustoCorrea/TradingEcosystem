@@ -30,17 +30,21 @@ namespace Exchange {
         run_ = true;
         tcp_server_.listen(iface_, port_);
 
-        ASSERT(createAndStartThread(-1, "Exchange/OrderServer", [this] { run(); } )
-            != nullptr, "Failed to start OrderServer thread.");
+        thread_ = createAndStartThread(-1, "Exchange/OrderServer", [this] { run(); } );
+        ASSERT(thread_ != nullptr && thread_->joinable(), "Failed to start OrderServer thread.");
     }
 
     auto OrderServer::stop() -> void {
         run_ = false;
+        if (thread_) {
+            if (thread_->joinable())
+                thread_->join();
+            delete thread_;
+            thread_ = nullptr;
+        }
     }
 
     OrderServer::~OrderServer() {
         stop();
-        using namespace std::literals::chrono_literals;
-        std::this_thread::sleep_for(1s);
     }
 }

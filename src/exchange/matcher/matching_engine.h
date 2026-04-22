@@ -109,6 +109,7 @@ namespace Exchange {
         MEClientResponseLFQueue *outgoing_ogw_responses_ = nullptr;
         MEMarketUpdateLFQueue *outgoing_md_updates_ = nullptr;
         volatile bool run_ = false;
+        std::thread *thread_ = nullptr;
         std::string time_str_;
         Logger logger_;
     };
