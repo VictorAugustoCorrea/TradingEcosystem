@@ -1,4 +1,0 @@
-/home/victor/Desktop/TradingEcosystem/cmake-build-release/CMakeFiles/rebuild_cache.dir
-/home/victor/Desktop/TradingEcosystem/cmake-build-release/CMakeFiles/edit_cache.dir
-/home/victor/Desktop/TradingEcosystem/cmake-build-release/CMakeFiles/Trading.dir
-/home/victor/Desktop/TradingEcosystem/cmake-build-release/CMakeFiles/Exchange.dir
