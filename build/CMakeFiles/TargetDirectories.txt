@@ -1,0 +1,3 @@
+/home/victor/Desktop/TradingEcosystem/build/CMakeFiles/rebuild_cache.dir
+/home/victor/Desktop/TradingEcosystem/build/CMakeFiles/edit_cache.dir
+/home/victor/Desktop/TradingEcosystem/build/CMakeFiles/TradingEcosystem.dir
