@@ -1,207 +1,146 @@
-<h1 text-align="center">Trading Ecosystem</h1>
+# Trading Ecosystem
 
-<p text-align="center">
-High-performance trading system prototype implemented in <b>C++</b> focused on
-<b>low-latency system design</b>, <b>deterministic processing</b>, and
-<b>high-throughput message handling</b>.
-</p>
+A low-latency trading system prototype in C++, focused on deterministic processing, high message throughput, and modular architecture.
 
-<p text-align="center">
-Inspired by the architectural concepts presented in <i>Building Low Latency Applications with C++</i>.
-</p>
+## Overview
 
-<p text-align="center">
-<a href="https://github.com/VictorAugustoCorrea/TradingEcosystem">Repository</a>
-</p>
+The project brings together, in a single executable (`TradingEcosystem`), the following components:
 
-<hr>
+- Exchange (ingestion, matching, and market data)
+- Trading client (gateway, market data consumer, and strategies)
+- Low-latency infrastructure (lock-free queues, networking, logging, and timing utilities)
 
-<h2>Overview</h2>
+## Current Project Structure
 
-<p>
-<b>Trading Ecosystem</b> is an experimental implementation of a simplified electronic
-exchange infrastructure designed to explore the engineering principles behind
-modern high-performance trading systems.
-</p>
+```text
+TradingEcosystem/
+├── CMakeLists.txt
+├── README.md
+├── src/
+│   ├── main.cpp
+│   ├── exchange/
+│   │   ├── exchange_application.{h,cpp}
+│   │   ├── order_server/
+│   │   │   ├── order_server.{h,cpp}
+│   │   │   ├── client_request.h
+│   │   │   ├── client_response.h
+│   │   │   └── fifo_sequencer.h
+│   │   ├── matcher/
+│   │   │   ├── matching_engine.{h,cpp}
+│   │   │   ├── me_order.{h,cpp}
+│   │   │   └── me_order_book.{h,cpp}
+│   │   └── market_data/
+│   │       ├── market_update.h
+│   │       ├── market_data_publisher.{h,cpp}
+│   │       └── snapshot_synthesizer.{h,cpp}
+│   ├── trading/
+│   │   ├── trade_client_application.{h,cpp}
+│   │   ├── order_gw/
+│   │   │   └── order_gateway.{h,cpp}
+│   │   ├── market_data/
+│   │   │   └── market_data_consumer.{h,cpp}
+│   │   └── strategy/
+│   │       ├── trade_engine.{h,cpp}
+│   │       ├── order_manager.{h,cpp}
+│   │       ├── risk_manager.{h,cpp}
+│   │       ├── market_maker.{h,cpp}
+│   │       ├── liquidity_taker.{h,cpp}
+│   │       ├── market_order_book.{h,cpp}
+│   │       ├── feature_engine.h
+│   │       ├── market_order.h
+│   │       ├── om_order.h
+│   │       └── position_keeper.h
+│   ├── low-latency-components/
+│   │   ├── lock_free_queue.h
+│   │   ├── mem_pool.h
+│   │   ├── tcp_server.h
+│   │   ├── tcp_socket.h
+│   │   ├── socket_utils.h
+│   │   ├── mcast_socket.h
+│   │   ├── logging.h
+│   │   ├── perf_utils.h
+│   │   ├── thread_utils.h
+│   │   ├── time_utils.h
+│   │   ├── macros.h
+│   │   └── types.h
+│   └── scripts/
+│       ├── build.sh
+│       ├── no_clean_build.sh
+│       ├── run_exchange_and_clients.sh
+│       └── run_clients.sh
+├── build/
+└── cmake-build-*/
+```
 
-<p>
-The project focuses on building the core components required to process orders,
-maintain an order book, and handle market data while minimizing latency and
-contention.
-</p>
+Note: log files and build artifacts are generated in `build/`, `cmake-build-*`, and also under `src/scripts/` when scripts are executed.
 
-<p>
-The system is structured around modular components that simulate the critical
-parts of a trading venue.
-</p>
+## Core Components
 
-<hr>
+- `order_server`: accepts client requests and sequences messages.
+- `matcher`: maintains the order book and performs price-time-priority matching.
+- `market_data`: publishes updates and snapshots derived from order book events.
+- `trading`: runs the client, market data consumption, order gateway, and strategies (`MAKER`, `TAKER`, `RANDOM`).
+- `low-latency-components`: reusable building blocks for communication and performance.
 
-<h2>System Architecture</h2>
+## Requirements
 
-<pre>
-Trading Ecosystem
-│
-├── Order Server
-│     Handles client connections and order ingestion
-│
-├── Matching Engine
-│     Maintains the limit order book and executes trades
-│
-├── Market Data
-│     Generates market updates from order book events
-│
-└── Low Latency Infrastructure
-      Lock-free queues
-      Memory pools
-      TCP networking
-      Logging and timing utilities
-</pre>
+- Linux
+- CMake >= 3.16
+- C++ compiler with C++20 support (GCC/Clang)
+- `ninja` (used by scripts in `src/scripts`)
 
-<hr>
+## Build
 
-<h2>Project Structure</h2>
+### Option 1: Manual CMake
 
-<pre>
-src/
- ├── exchange/
- │   ├── market_data/
- │   │   ├── market_data_update
- │   │   ├── market_data_publisher
- │   │   ├── snapshot_synthesizer
- │   │
- │   ├── matcher/
- │   │   ├── matching_engine
- │   │   ├── me_order
- │   │   └── me_order_book
- │   │
- │   └── order_server/
- │       ├── client_request
- │       ├── client_response
- │       ├── fifo_sequencer
- │       └── order_server
- │
- ├── low_latency_components/
- │   ├── lock_free_queue
- │   ├── mem_pool
- │   ├── tcp_server
- │   ├── tcp_socket
- │   ├── logging
- │   ├── thread_utils
- │   ├── socket_utils
- │   ├── time_utils
- │   └── types
- │
- └── main.cpp
-</pre>
+```bash
+mkdir -p build
+cmake -S . -B build
+cmake --build build -j"$(nproc)"
+```
 
-<hr>
+### Option 2: Project Script (Debug + Release)
 
-<h2>Core Components</h2>
+```bash
+cd src/scripts
+./build.sh
+```
 
-<h3>Order Server</h3>
+This script generates binaries at:
 
-<p>
-Responsible for handling TCP client connections and receiving order messages.
-Requests are validated, sequenced, and forwarded to the matching engine.
-</p>
+- `src/cmake-build-release/TradingEcosystem`
+- `src/cmake-build-debug/TradingEcosystem`
 
-<p>
-Key responsibilities:
-</p>
+## Running
 
-<ul>
-<li>Client connection management</li>
-<li>Order message ingestion</li>
-<li>FIFO sequencing of requests</li>
-<li>Dispatching orders to the matching engine</li>
-</ul>
+With the `TradingEcosystem` binary, the modes supported by `src/main.cpp` are:
 
-<h3>Matching Engine</h3>
+```text
+--exchange-only
+--exchange <client_id> <algo_type> [ticker params...]
+<client_id> <algo_type> [ticker params...]
+```
 
-<p>
-Implements the core logic of the exchange through a limit order book
-responsible for matching buy and sell orders.
-</p>
+Examples:
 
-<ul>
-<li>Price-time priority matching</li>
-<li>Efficient order book management</li>
-<li>Deterministic order processing</li>
-</ul>
+```bash
+# Exchange only
+./TradingEcosystem --exchange-only
 
-<h3>Market Data</h3>
+# Exchange + client in the same process
+./TradingEcosystem --exchange 1 MAKER
 
-<p>
-Produces market updates derived from order book events such as
-order insertions, cancellations, and trades.
-</p>
+# Client only
+./TradingEcosystem 2 TAKER
+```
 
-<h3>Low Latency Infrastructure</h3>
+To run the full automated scenario:
 
-<p>
-A set of reusable utilities designed for performance-critical systems.
-</p>
+```bash
+cd src/scripts
+./run_exchange_and_clients.sh
+```
 
-<ul>
-<li><b>Lock-Free Queue</b> — high-throughput inter-thread communication</li>
-<li><b>Memory Pool</b> — pre-allocated memory to avoid dynamic allocation overhead</li>
-<li><b>TCP Networking</b> — lightweight abstraction for client/server communication</li>
-<li><b>Logging</b> — low-overhead event logging</li>
-<li><b>Time Utilities</b> — precise timestamping for performance monitoring</li>
-</ul>
+## Purpose
 
-<hr>
-
-<h2>Build</h2>
-
-<p><b>Requirements</b></p>
-
-<ul>
-<li>Linux</li>
-<li>C++17 or newer</li>
-<li>CMake</li>
-<li>GCC / Clang</li>
-</ul>
-
-<pre>
-git clone https://github.com/VictorAugustoCorrea/TradingEcosystem.git
-cd TradingEcosystem
-
-mkdir build
-cd build
-
-cmake ..
-make
-</pre>
-
-<hr>
-
-<h2>Design Principles</h2>
-
-<ul>
-<li>Minimize dynamic memory allocation</li>
-<li>Prefer lock-free communication where possible</li>
-<li>Reduce system call overhead</li>
-<li>Maintain deterministic execution paths</li>
-<li>Favor cache-friendly data structures</li>
-</ul>
-
-<hr>
-
-<h2>Purpose</h2>
-
-<p>
-This project is intended as a learning platform to explore the internal
-architecture of modern trading systems and the design of low-latency
-applications in C++.
-</p>
-
-<hr>
-
-<h2>Disclaimer</h2>
-
-<p>
-This repository is intended for <b>educational and research purposes</b>.
-It does not represent a production-ready trading system.
-</p>
+Educational project for studying electronic exchange architecture and low-latency system engineering techniques. It is not production-ready.
