@@ -146,7 +146,7 @@ int main(const int argc, char** argv) {
         &market_updates,
         start_exchange,
         trading_logger);
-    trade_client_app->start();
+    trade_client_app -> start();
 
     /** Run strategy-specific logic */
     if (algo_type == AlgoType::RANDOM)
